@@ -1,0 +1,514 @@
+import SwiftUI
+
+struct ContentView: View {
+    @EnvironmentObject private var store: GameStore
+    @State private var selectedTab: Int
+
+    init() {
+        let args = ProcessInfo.processInfo.arguments
+        let tab = args.contains("-capture-tab-board") ? 1
+            : args.contains("-capture-tab-properties") ? 2
+            : args.contains("-capture-tab-statement") ? 3
+            : 0
+        _selectedTab = State(initialValue: tab)
+    }
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            NavigationStack { HomeView(selectedTab: $selectedTab) }
+                .tabItem { Label("Início", systemImage: "house.fill") }
+                .tag(0)
+            NavigationStack { BoardView() }
+                .tabItem { Label("Tabuleiro", systemImage: "square.grid.3x3.fill") }
+                .tag(1)
+            NavigationStack { PropertyView() }
+                .tabItem { Label("Imóveis", systemImage: "building.2.fill") }
+                .tag(2)
+            NavigationStack { StatementView() }
+                .tabItem { Label("Extrato", systemImage: "list.bullet.rectangle") }
+                .tag(3)
+        }
+        .tint(Palette.forest)
+        .background(Palette.canvas.ignoresSafeArea())
+        .alert("Banco do Tabuleiro", isPresented: Binding(
+            get: { store.errorMessage != nil },
+            set: { if !$0 { store.clearError() } }
+        )) {
+            Button("Entendi", role: .cancel) { store.clearError() }
+        } message: {
+            Text(store.errorMessage ?? "Ocorreu um erro inesperado.")
+        }
+    }
+}
+
+private enum HomeSheet: String, Identifiable {
+    case createGame, transfer, charge
+    var id: String { rawValue }
+}
+
+struct HomeView: View {
+    @EnvironmentObject private var store: GameStore
+    @Binding var selectedTab: Int
+    @State private var sheet: HomeSheet?
+    @State private var showFinishConfirmation = false
+
+    var body: some View {
+        ZStack {
+            Palette.canvas.ignoresSafeArea()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    topBar
+                    if let game = store.game {
+                        gameDashboard(game)
+                    } else {
+                        welcomeCard
+                    }
+                    footer
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, 28)
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(item: $sheet) { selected in
+            NavigationStack {
+                switch selected {
+                case .createGame: CreateGameView()
+                case .transfer: TransferView()
+                case .charge: ChargeView()
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
+            Button("Encerrar partida", role: .destructive) { store.finishGame() }
+            Button("Continuar jogando", role: .cancel) { }
+        } message: {
+            Text("O histórico e o resumo continuarão salvos neste iPhone.")
+        }
+    }
+
+    private var topBar: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 15).fill(Palette.forest).frame(width: 48, height: 48)
+                Image(systemName: "building.columns.fill")
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(Palette.goldLight)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("BANCO DO TABULEIRO")
+                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .tracking(1.4)
+                    .foregroundStyle(Palette.forest)
+                Text("Seu jogo, bem organizado")
+                    .font(.system(.caption, design: .rounded, weight: .medium))
+                    .foregroundStyle(Palette.muted)
+            }
+            Spacer()
+            if store.game != nil {
+                Image(systemName: "wifi.slash")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Palette.muted)
+                    .accessibilityLabel("Partida local, sem conexão necessária")
+            }
+        }
+        .padding(.bottom, 2)
+    }
+
+    private var welcomeCard: some View {
+        VStack(spacing: 18) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 28).fill(LinearGradient(colors: [Palette.forest, Color(hex: 0x0B6045)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                VStack(spacing: 16) {
+                    BoardIllustration()
+                        .frame(height: 190)
+                        .padding(.horizontal, 4)
+                    VStack(spacing: 7) {
+                        Text("A mesa está pronta.")
+                            .font(.system(size: 27, weight: .bold, design: .serif))
+                            .foregroundStyle(Palette.card)
+                            .multilineTextAlignment(.center)
+                        Text("Controle saldos, imóveis e pagamentos da partida em um só lugar.")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(Palette.card.opacity(0.83))
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(20)
+            }
+            .frame(minHeight: 350)
+            .overlay(RoundedRectangle(cornerRadius: 28).stroke(Palette.gold.opacity(0.55), lineWidth: 1))
+
+            VStack(alignment: .leading, spacing: 15) {
+                Label("Tudo fica salvo neste iPhone", systemImage: "iphone")
+                Label("Sem cadastro e sem dinheiro real", systemImage: "lock.shield")
+                Label("Cada operação entra no extrato", systemImage: "checkmark.seal")
+            }
+            .font(.system(.subheadline, design: .rounded, weight: .medium))
+            .foregroundStyle(Palette.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 21))
+
+            Button { sheet = .createGame } label: {
+                Label("Criar partida", systemImage: "sparkles")
+            }
+            .buttonStyle(PrimaryActionStyle())
+            .accessibilityIdentifier("create-game-button")
+
+            Text("M$ é uma moeda fictícia da partida. Nenhum pagamento real é realizado.")
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(Palette.muted)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private func gameDashboard(_ game: GameSnapshot) -> some View {
+        VStack(spacing: 17) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(game.name)
+                        .font(.system(.title2, design: .serif, weight: .bold))
+                        .foregroundStyle(Palette.ink)
+                    Text(game.status == "active" ? "PARTIDA EM ANDAMENTO" : "PARTIDA ENCERRADA")
+                        .font(.system(size: 9, weight: .black, design: .rounded))
+                        .tracking(1.3)
+                        .foregroundStyle(game.status == "active" ? Palette.success : Palette.muted)
+                }
+                Spacer()
+                Menu {
+                    Button("Nova partida", systemImage: "plus") { sheet = .createGame }
+                    if game.status == "active" {
+                        Button("Encerrar partida", systemImage: "flag.checkered", role: .destructive) { showFinishConfirmation = true }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(Palette.forest)
+                        .frame(width: 42, height: 42)
+                        .background(Palette.card, in: Circle())
+                }
+                .accessibilityLabel("Opções da partida")
+            }
+
+            balanceCard(game)
+            playerCard(game)
+
+            if game.status == "active" {
+                HStack(spacing: 11) {
+                    actionButton("PIX interno", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
+                    actionButton("Cobrar", icon: "qrcode", color: Palette.burgundy) { sheet = .charge }
+                    actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.ink) { selectedTab = 1 }
+                }
+
+                if !game.pendingRequests.isEmpty {
+                    pendingPayments(game.pendingRequests)
+                }
+            } else {
+                finalSummary(game)
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                SectionTitle(title: "Últimas movimentações", action: "Ver extrato", actionHandler: { selectedTab = 3 })
+                if game.transactions.isEmpty {
+                    Text("As movimentações desta partida aparecerão aqui.")
+                        .font(.system(.subheadline, design: .rounded))
+                        .foregroundStyle(Palette.muted)
+                } else {
+                    ForEach(game.transactions.prefix(4)) { transaction in
+                        TransactionRow(transaction: transaction)
+                    }
+                }
+            }
+            .padding(18)
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+
+            Text("Código local  ·  \(game.inviteCode)  ·  Funciona apenas neste iPhone")
+                .font(.system(.caption2, design: .monospaced, weight: .medium))
+                .foregroundStyle(Palette.muted)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private func balanceCard(_ game: GameSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label("SALDO DO JOGADOR ATIVO", systemImage: "sparkle")
+                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                    .tracking(1.1)
+                    .foregroundStyle(Palette.goldLight)
+                Spacer()
+                Text("MOEDA DO JOGO")
+                    .font(.system(size: 8, weight: .heavy, design: .rounded))
+                    .tracking(0.8)
+                    .foregroundStyle(Palette.card.opacity(0.68))
+            }
+            Text(MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .foregroundStyle(.white)
+                .accessibilityIdentifier("balance-value")
+            HStack(spacing: 7) {
+                Image(systemName: "person.crop.circle.fill")
+                    .foregroundStyle(Palette.goldLight)
+                Text(game.currentPlayer?.name ?? "Jogador")
+                    .foregroundStyle(Palette.card.opacity(0.82))
+                Spacer()
+                Text("\(game.players.count) jogadores")
+                    .foregroundStyle(Palette.card.opacity(0.82))
+            }
+            .font(.system(.caption, design: .rounded, weight: .semibold))
+        }
+        .padding(21)
+        .background(LinearGradient(colors: [Palette.forest, Color(hex: 0x0A4938), Palette.ink], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 25))
+        .overlay(RoundedRectangle(cornerRadius: 25).stroke(Palette.gold.opacity(0.65), lineWidth: 1))
+        .shadow(color: Palette.forest.opacity(0.18), radius: 16, x: 0, y: 9)
+    }
+
+    private func playerCard(_ game: GameSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionTitle(title: "Jogadores na partida")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 17) {
+                    ForEach(game.players) { player in
+                        Button {
+                            store.selectActivePlayer(player)
+                        } label: {
+                            VStack(spacing: 6) {
+                                ZStack(alignment: .topTrailing) {
+                                    Circle().fill(Color(hexString: player.colorHex)).frame(width: 48, height: 48)
+                                        .overlay(Image(systemName: tokenSymbol(player.token)).font(.system(size: 20, weight: .bold)).foregroundStyle(.white))
+                                        .overlay(Circle().stroke(player.id == game.currentPlayer?.id ? Palette.gold : .clear, lineWidth: 3))
+                                    if player.id == game.currentPlayer?.id {
+                                        Image(systemName: "crown.fill").font(.system(size: 12)).foregroundStyle(Palette.gold).offset(x: 5, y: -4)
+                                    }
+                                }
+                                Text(player.name)
+                                    .font(.system(.caption2, design: .rounded, weight: .semibold))
+                                    .foregroundStyle(Palette.ink)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .frame(width: 58)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("select-player-\(player.id)")
+                    }
+                }
+            }
+        }
+        .padding(17)
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    private func pendingPayments(_ requests: [PaymentRequest]) -> some View {
+        VStack(alignment: .leading, spacing: 11) {
+            SectionTitle(title: "Cobranças aguardando")
+            ForEach(requests) { request in
+                HStack(spacing: 12) {
+                    Image(systemName: "bell.badge.fill").foregroundStyle(Palette.burgundy)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("\(request.payerName) deve pagar a \(request.creatorName)")
+                            .font(.system(.caption, design: .rounded, weight: .semibold))
+                            .foregroundStyle(Palette.ink)
+                        Text(request.description)
+                            .font(.system(.caption2, design: .rounded))
+                            .foregroundStyle(Palette.muted)
+                    }
+                    Spacer(minLength: 4)
+                    Button("Pagar") { store.payCharge(request) }
+                        .font(.system(.caption, design: .rounded, weight: .bold))
+                        .foregroundStyle(Palette.forest)
+                }
+                .padding(13)
+                .background(Palette.canvas, in: RoundedRectangle(cornerRadius: 15))
+            }
+        }
+        .padding(17)
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    private func finalSummary(_ game: GameSnapshot) -> some View {
+        let ranking = game.players.map { player in
+            let propertyValue = game.properties
+                .filter { $0.ownerPlayerID == player.id }
+                .reduce(Int64(0)) { $0 + $1.purchasePriceMinor }
+            return (player: player, wealth: player.balanceMinor + propertyValue, properties: game.properties.filter { $0.ownerPlayerID == player.id }.count)
+        }.sorted { $0.wealth > $1.wealth }
+
+        return VStack(alignment: .leading, spacing: 13) {
+            Label("RESUMO FINAL", systemImage: "flag.checkered")
+                .font(.system(size: 9, weight: .black, design: .rounded))
+                .tracking(1.2)
+                .foregroundStyle(Palette.gold)
+            Text("Patrimônio da partida")
+                .font(.system(.title3, design: .serif, weight: .bold))
+                .foregroundStyle(Palette.ink)
+            ForEach(ranking.indices, id: \.self) { index in
+                let result = ranking[index]
+                HStack(spacing: 10) {
+                    Text(index == 0 ? "♛" : "\(index + 1)")
+                        .font(.system(.headline, design: .rounded, weight: .bold))
+                        .foregroundStyle(index == 0 ? Palette.gold : Palette.muted)
+                        .frame(width: 28)
+                    Circle().fill(Color(hexString: result.player.colorHex)).frame(width: 12, height: 12)
+                    Text(result.player.name).font(.system(.subheadline, design: .rounded, weight: .semibold)).foregroundStyle(Palette.ink)
+                    Spacer()
+                    Text("\(result.properties) imóveis")
+                        .font(.system(.caption2, design: .rounded)).foregroundStyle(Palette.muted)
+                    Text(MoneyFormat.string(result.wealth))
+                        .font(.system(.caption, design: .rounded, weight: .bold)).foregroundStyle(Palette.forest)
+                }
+            }
+            Text("Patrimônio calculado pelo saldo disponível e preço cadastrado dos imóveis.")
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(Palette.muted)
+        }
+        .padding(18)
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    private func actionButton(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 9) {
+                Image(systemName: icon).font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Palette.goldLight)
+                    .frame(width: 48, height: 48)
+                    .background(color, in: Circle())
+                Text(title)
+                    .font(.system(.caption2, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 19))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("home-action-\(title)")
+    }
+
+    private var footer: some View {
+        Text("M$ é dinheiro fictício. PIX Imobiliário funciona somente dentro da partida.")
+            .font(.system(.caption2, design: .rounded))
+            .foregroundStyle(Palette.muted)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 8)
+    }
+
+    private func tokenSymbol(_ token: String) -> String {
+        switch token {
+        case "torre": return "building.2.fill"
+        case "estrela": return "star.fill"
+        case "casa": return "house.fill"
+        case "carro": return "car.fill"
+        default: return "pawn.fill"
+        }
+    }
+}
+
+struct TransactionRow: View {
+    let transaction: GameTransaction
+
+    private var symbol: String {
+        switch transaction.kind {
+        case "initial": return "banknote.fill"
+        case "purchase": return "house.fill"
+        case "rent": return "key.fill"
+        case "charge": return "qrcode"
+        default: return "arrow.left.arrow.right"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 11) {
+            Image(systemName: symbol)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Palette.forest)
+                .frame(width: 38, height: 38)
+                .background(Palette.forest.opacity(0.09), in: Circle())
+            VStack(alignment: .leading, spacing: 3) {
+                Text(transaction.description)
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(1)
+                Text("\(transaction.fromName)  →  \(transaction.toName)")
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(Palette.muted)
+            }
+            Spacer(minLength: 2)
+            Text(MoneyFormat.string(transaction.amountMinor))
+                .font(.system(.caption, design: .rounded, weight: .bold))
+                .foregroundStyle(transaction.kind == "initial" ? Palette.success : Palette.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(.vertical, 3)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct BoardIllustration: View {
+    private let squares: [(String, Color)] = [
+        ("house.fill", Color(hex: 0xE6C16C)), ("building.2.fill", Color(hex: 0xE7E2D4)),
+        ("train.side.front.car", Color(hex: 0xD08471)), ("leaf.fill", Color(hex: 0xC8D7B8)),
+        ("house.fill", Color(hex: 0xE6C16C)), ("bolt.fill", Color(hex: 0xE7E2D4)),
+        ("building.2.fill", Color(hex: 0xC8D7B8)), ("star.fill", Color(hex: 0xD08471)),
+        ("house.fill", Color(hex: 0xE6C16C)), ("leaf.fill", Color(hex: 0xE7E2D4)),
+        ("building.2.fill", Color(hex: 0xC8D7B8)), ("train.side.front.car", Color(hex: 0xD08471))
+    ]
+
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            ZStack {
+                RoundedRectangle(cornerRadius: 24).fill(Color(hex: 0xEADBB4)).frame(width: side * 0.96, height: side * 0.88).rotationEffect(.degrees(-4))
+                RoundedRectangle(cornerRadius: 22).fill(Color(hex: 0xF6F0DF)).frame(width: side * 0.93, height: side * 0.86).overlay {
+                    ZStack {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 4), spacing: 4) {
+                            ForEach(squares.indices, id: \.self) { index in
+                                RoundedRectangle(cornerRadius: 5)
+                                    .fill(squares[index].1)
+                                    .overlay(Image(systemName: squares[index].0).font(.system(size: 10, weight: .bold)).foregroundStyle(Palette.ink.opacity(0.75)))
+                                    .frame(height: side * 0.12)
+                            }
+                        }
+                        RoundedRectangle(cornerRadius: 13).fill(LinearGradient(colors: [Color(hex: 0xE0E9D6), Color(hex: 0xC8D9BC)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: side * 0.48, height: side * 0.45)
+                            .overlay {
+                                VStack(spacing: 5) {
+                                    Image(systemName: "building.columns.fill").font(.system(size: 29, weight: .medium)).foregroundStyle(Palette.forest)
+                                    Text("CIDADE\nDO JOGO").font(.system(size: 8, weight: .black, design: .rounded)).tracking(1).multilineTextAlignment(.center).foregroundStyle(Palette.forest)
+                                }
+                            }
+                        HStack(spacing: 20) {
+                            token("pawn.fill", color: Color(hex: 0xD9483B), angle: -12)
+                            token("house.fill", color: Color(hex: 0xE2B642), angle: 8)
+                            token("building.2.fill", color: Color(hex: 0x4B78D5), angle: -5)
+                        }
+                        .offset(y: side * 0.31)
+                    }
+                    .padding(side * 0.035)
+                }
+                .shadow(color: .black.opacity(0.23), radius: 12, x: 0, y: 8)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .accessibilityLabel("Ilustração original de um tabuleiro imobiliário e peças de jogo")
+    }
+
+    private func token(_ icon: String, color: Color, angle: Double) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 19, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 34, height: 34)
+            .background(LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.7), lineWidth: 1))
+            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 4)
+            .rotationEffect(.degrees(angle))
+    }
+}

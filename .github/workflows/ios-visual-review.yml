@@ -1,0 +1,173 @@
+name: iOS build, tests & visual review
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  blender-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes blender
+          blender --version
+
+      - name: Generate original board and USDZ
+        run: blender --background --python Scripts/generate_board_assets.py -- BancoDoTabuleiro/Art.scnassets
+
+      - name: Verify generated assets
+        run: |
+          test -s BancoDoTabuleiro/Art.scnassets/BoardScene.usdz
+          test -s Blender/PIX-Board-Studio.blend
+          test -s Blender/PIX-Board-preview.png
+
+      - name: Upload Blender source and preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIX-blender-assets
+          path: |
+            BancoDoTabuleiro/Art.scnassets/BoardScene.usdz
+            Blender/PIX-Board-Studio.blend
+            Blender/PIX-Board-preview.png
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-test-and-capture:
+    needs: blender-assets
+    if: always()
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Blender export when available
+        if: needs.blender-assets.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: PIX-blender-assets
+          path: .
+
+      - name: Select Xcode
+        run: |
+          if [ -d /Applications/Xcode_16.4.app/Contents/Developer ]; then
+            sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          fi
+          xcodebuild -version
+
+      - name: Boot an available iPhone simulator
+        run: |
+          UDID=$(xcrun simctl list devices -j | python3 -c 'import json,sys; data=json.load(sys.stdin); items=[device for group in data["devices"].values() for device in group if device.get("isAvailable", False) and device.get("name", "").startswith("iPhone")]; preferred=sorted(items, key=lambda d: ("Pro" in d["name"], d["name"])); print(preferred[0]["udid"] if preferred else "")')
+          if [ -z "$UDID" ]; then
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time '9:41' --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+
+      - name: Build app for iOS Simulator
+        id: build
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BancoDoTabuleiro.xcodeproj \
+            -scheme BancoDoTabuleiro \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY='' \
+            build | tee xcodebuild-build.log
+
+      - name: Run unit and UI tests
+        id: xcode-tests
+        if: always() && steps.build.outcome == 'success'
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BancoDoTabuleiro.xcodeproj \
+            -scheme BancoDoTabuleiro \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -derivedDataPath DerivedData \
+            -resultBundlePath BancoDoTabuleiro.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY='' \
+            test | tee xcodebuild-test.log
+
+      - name: Capture iPhone screens
+        if: always() && steps.build.outcome == 'success'
+        run: |
+          mkdir -p visual-review/screenshots
+          xcrun simctl install "$UDID" DerivedData/Build/Products/Debug-iphonesimulator/BancoDoTabuleiro.app
+          capture() {
+            name="$1"
+            route="$2"
+            xcrun simctl terminate "$UDID" com.bancodotabuleiro.pix 2>/dev/null || true
+            if [ "$route" = home ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode
+            else
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode "-capture-tab-$route"
+            fi
+            sleep 3
+            xcrun simctl io "$UDID" screenshot "visual-review/screenshots/$name.png"
+          }
+          capture 01-dashboard home
+          capture 02-board board
+          capture 03-properties properties
+          capture 04-statement statement
+
+      - name: Build visual contact sheet
+        if: always() && steps.build.outcome == 'success'
+        run: swift Scripts/make_contact_sheet.swift visual-review/screenshots visual-review/PIX-contact-sheet.png
+
+      - name: Upload screenshots and contact sheet
+        if: always()
+        id: upload-prints
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIX-prints-iphone
+          path: |
+            visual-review/screenshots/
+            visual-review/PIX-contact-sheet.png
+            Blender/PIX-Board-preview.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload build/test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIX-build-test-results
+          path: |
+            xcodebuild-build.log
+            xcodebuild-test.log
+            BancoDoTabuleiro.xcresult
+            DerivedData/Logs/Test/**/*.xcresult
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Summarize run
+        if: always()
+        run: |
+          echo '## Banco do Tabuleiro — revisão iOS' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Blender assets: ${{ needs.blender-assets.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build: ${{ steps.build.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- XCTest: ${{ steps.xcode-tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Prints e montagem: artifact `PIX-prints-iphone`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Logs e xcresult: artifact `PIX-build-test-results`' >> "$GITHUB_STEP_SUMMARY"

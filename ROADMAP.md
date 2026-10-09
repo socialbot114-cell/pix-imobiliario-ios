@@ -1,0 +1,112 @@
+# Banco do Tabuleiro — Roadmap de desenvolvimento
+
+Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários. O app usa moeda fictícia, não movimenta dinheiro real e mantém os dados financeiros em SQLite no iPhone.
+
+## Parâmetros aprovados
+
+- iPhone nativo com SwiftUI; alvo inicial iOS 17+.
+- Uma partida compartilhada por jogadores no mesmo iPhone (hot-seat); sem sincronização entre aparelhos no MVP.
+- SQLite como fonte de verdade local; valores guardados como inteiros e operações registradas em livro de dupla entrada.
+- 2–6 jogadores por partida, apelidos e cores, sem cadastro obrigatório.
+- Visual premium original: verde profundo, marfim e dourado, alinhado à imagem de referência.
+- Blender para tabuleiro e peças originais, exportados em USDZ e exibidos no app.
+- Sem marcas, nomes de propriedades ou arte proprietária de jogos comerciais.
+- GitHub Actions para build e testes em simulador macOS, revisão visual e artefatos.
+- A pasta `START` é referência de implementação; este projeto permanece independente.
+
+## Roadmap por semanas
+
+| Semana | Marco | Entregas | Saída esperada | Estado |
+|---|---|---|---|---|
+| 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Código criado; aguardando primeiro Actions |
+| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | Implementado; execução XCTest pendente |
+| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Primeira versão implementada; revisão visual pendente |
+| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Primeira versão implementada; execução XCTest pendente |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ | Propriedade e visual 3D integrados | App/fallback e script Blender criados; export precisa validar no Actions |
+| 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros e estados vazios | MVP P0 funcional e polido | Planejada |
+| 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | Planejada |
+| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Planejada |
+| 9 | Estabilização | QA final, documentação, CI verde e pacote para teste | Build candidato a teste em aparelho | Planejada |
+
+> As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
+
+## Escopo P0
+
+1. Criar e retomar partidas locais.
+2. Configurar nome, 2–6 jogadores, saldo inicial e moeda virtual.
+3. Distribuir o saldo inicial uma única vez.
+4. Consultar saldo, jogadores e extrato.
+5. Fazer transferências virtuais com revisão antes da confirmação.
+6. Criar cobranças e registrar o pagamento de aluguel.
+7. Cadastrar propriedades genéricas, comprar imóvel disponível e manter titularidade histórica.
+8. Encerrar uma partida e consultar resumo financeiro.
+9. Exibir tabuleiro e peças próprias em 3D; animações são visuais e não substituem as regras do tabuleiro físico.
+10. Funcionar sem rede e manter os dados após reiniciar o app.
+
+## Arquitetura de referência
+
+```text
+PIX IMOBILIARIO/
+├── BancoDoTabuleiro.xcodeproj/
+├── BancoDoTabuleiro/
+│   ├── App/
+│   ├── Domain/
+│   ├── Data/SQLite/
+│   ├── Features/{Home,Bank,Transfers,Properties,Statement,Board}/
+│   ├── DesignSystem/
+│   └── Art.scnassets/
+├── BancoDoTabuleiroTests/
+├── BancoDoTabuleiroUITests/
+├── Blender/
+├── Scripts/
+└── .github/workflows/
+```
+
+SQLite terá `games`, `players`, `accounts`, `transactions`, `transaction_entries`, `properties`, `property_ownership` e `payment_requests`. Cada operação altera contas e cria lançamentos dentro da mesma transação SQL. O banco da partida funciona como contraparte da distribuição inicial e das taxas. IDs de idempotência evitam duplicação local; restrições impedem saldo negativo e titularidades simultâneas.
+
+O cliente local não fornece as garantias de autorização de um servidor multiplayer. Um código exibido na partida não é credencial de acesso remoto. Entrada em outros iPhones, autenticação e saldo compartilhado ficam para uma etapa com backend.
+
+## GitHub Actions e revisão visual
+
+- Runner macOS com Xcode e simulador de iPhone; build sem assinatura.
+- Testes de domínio/SQLite e UI em modo previsível.
+- Artifacts por execução: screenshots individuais, contact sheet, vídeo de navegação quando disponível, logs e resultados XCTest.
+- Capturas prioritárias: início/configuração, painel, PIX, imóveis, extrato e tabuleiro.
+- Pipeline de Blender separado ou etapa não bloqueante enquanto o export USDZ estiver sendo estabilizado; validar carregamento de USDZ no teste iOS quando disponível.
+- Após cada execução: registrar link/status do run, observações visuais e correção priorizada aqui.
+
+## Critérios de aceite do MVP
+
+- CI compila o app e executa testes no simulador de iPhone.
+- Partida e extrato sobrevivem a fechar e reabrir o app.
+- Uma transferência gera lançamentos balanceados; valor inválido e saldo insuficiente não alteram o saldo.
+- Repetir a mesma chave de idempotência não duplica a operação.
+- Compra de imóvel debita e atribui titularidade atomicamente.
+- Cobrança só movimenta saldo quando paga e não pode ser paga duas vezes.
+- O app identifica claramente saldo e pagamentos como virtuais.
+- VoiceOver, Dynamic Type e Reduzir Movimento têm suporte nos fluxos principais.
+- Screenshots do Actions são revisados em cada rodada visual e regressões são corrigidas antes da semana 9.
+
+## Pós-MVP
+
+- Multiplayer entre dispositivos com backend como autoridade, identidade de convidado, códigos de convite, sincronização e transações atômicas no servidor.
+- QR Code para cobrança, exportação/compartilhamento de resumo, casas/hotéis, hipoteca, empréstimos e falência.
+- TestFlight/App Store após configurar assinatura, privacidade, exclusão e retenção de dados.
+
+## Diário de execução
+
+| Data | Semana/marco | Mudança ou teste | Resultado / evidência | Próximo passo |
+|---|---|---|---|---|
+| 2026-10-09 | 0 → 1 | Roadmap criado; confirmados hot-seat, SQLite local, Blender e CI iOS | Pasta-alvo continha apenas a imagem de referência; Xcode/Swift/Blender não estão instalados neste Linux; GitHub CLI autenticado | Criar app, testes e workflow macOS; preparar execução remota |
+| 2026-10-09 | Rodada 1 · base, dados e telas P0 | Criados Xcode project/scheme, app SwiftUI, tema premium, painel, criação de partida, seleção persistida do jogador ativo, transferências, cobranças, imóveis, extrato e tabuleiro SceneKit com fallback | Script Blender passou `ast.parse`; schema e migração v1→v2 executados em SQLite em memória; YAML do Actions válido. Build SwiftUI/XCTest ainda não executado por falta de Xcode neste host. | Inicializar repo privado, disparar primeiro workflow, baixar prints/xcresult e corrigir bloqueios encontrados |
+
+### Registro detalhado da rodada 1
+
+- `BancoDoTabuleiro/Data/SQLite/SQLiteGameRepository.swift`: schema versionado (migrações 1 e 2), seleção persistida do jogador ativo, contas do banco e jogadores, lançamentos com sinais opostos, saldo inteiro, transações SQL atômicas com `BEGIN IMMEDIATE`, chaves de idempotência, compra de imóvel, cobranças e estado encerrado.
+- `BancoDoTabuleiro/Features/`: primeira implementação SwiftUI dos fluxos de partida, painel, PIX, cobranças, carteira de imóveis, extrato e resumo final.
+- `BancoDoTabuleiro/Features/Board/BoardView.swift`: tela 3D SceneKit, movimento visual de peças e fallback procedural se o USDZ não estiver no bundle.
+- `Scripts/generate_board_assets.py`: fonte Blender para tabuleiro, propriedades genéricas, seis peças, dados, cena `.blend`, preview e export USDZ.
+- `BancoDoTabuleiroTests/` e `BancoDoTabuleiroUITests/`: testes iniciais de saldo, idempotência, fundos insuficientes, compra/aluguel, cobrança, encerramento e fluxos visuais.
+- `.github/workflows/ios-visual-review.yml`: geração Blender opcional na primeira rodada; build, XCTest, capturas do simulador e upload de artefatos no runner macOS.
+- **Evidência pendente:** nenhum print veio do GitHub Actions ainda. O primeiro run e sua revisão são o próximo gate; as telas não serão marcadas como aprovadas antes de analisar os artefatos reais.
