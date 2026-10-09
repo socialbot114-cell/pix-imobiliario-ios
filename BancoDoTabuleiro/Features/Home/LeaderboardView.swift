@@ -52,6 +52,7 @@ struct LeaderboardView: View {
 struct PlayerStandingRow: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let standing: PlayerStanding
+    var identifierPrefix = "leaderboard-row"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
@@ -91,7 +92,7 @@ struct PlayerStandingRow: View {
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 19, style: .continuous).stroke(Palette.line, lineWidth: 1))
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("leaderboard-row-\(standing.id)")
+        .accessibilityIdentifier("\(identifierPrefix)-\(standing.id)")
     }
 
     private var rankBadge: some View {

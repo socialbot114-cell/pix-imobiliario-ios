@@ -440,7 +440,7 @@ struct HomeView: View {
             }
 
             ForEach(game.standings.prefix(3)) { standing in
-                PlayerStandingRow(standing: standing)
+                PlayerStandingRow(standing: standing, identifierPrefix: "leaderboard-preview-row")
             }
 
             if game.standings.count > 3 {
