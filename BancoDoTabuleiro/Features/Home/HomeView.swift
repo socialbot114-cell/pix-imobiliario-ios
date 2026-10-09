@@ -83,7 +83,7 @@ struct HomeView: View {
                 case .privacy: PrivacyAndDataView()
                 }
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents(selected == .privacy ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
@@ -107,6 +107,8 @@ struct HomeView: View {
                 sheet = .bank
             } else if arguments.contains("-capture-charge") {
                 sheet = .charge
+            } else if arguments.contains("-capture-privacy") {
+                sheet = .privacy
             }
         }
     }
