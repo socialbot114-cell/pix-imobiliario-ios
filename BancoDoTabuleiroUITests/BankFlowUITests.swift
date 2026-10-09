@@ -38,6 +38,9 @@ final class BankFlowUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["roll-board-dice"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Sua jogada"].exists)
+        let boardScene = app.descendants(matching: .any)["board-scene"]
+        XCTAssertTrue(boardScene.waitForExistence(timeout: 5))
+        XCTAssertTrue((boardScene.value as? String)?.contains("Ana: casa 1 de 20") == true)
     }
 
     func testPropertyPurchaseIsVisibleInStatement() throws {
@@ -131,7 +134,8 @@ final class BankFlowUITests: XCTestCase {
         let pixButton = app.buttons["home-action-PIX"]
         XCTAssertTrue(pixButton.waitForExistence(timeout: 8))
         XCTAssertTrue(pixButton.label.localizedCaseInsensitiveContains("PIX"))
-        XCTAssertTrue(app.buttons["select-player-1"].label.contains("Ana"))
+        XCTAssertTrue(app.buttons["select-player-1"].label.contains("Ana, jogador ativo"))
+        XCTAssertTrue(app.buttons["select-player-2"].label.contains("Bruno, selecionar como jogador ativo"))
         XCTAssertTrue(app.tabBars.buttons["Extrato"].label.contains("Extrato"))
     }
 

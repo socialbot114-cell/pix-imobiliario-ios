@@ -380,6 +380,7 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(player.name), \(player.id == game.currentPlayer?.id ? "jogador ativo" : "selecionar como jogador ativo")")
         .accessibilityIdentifier("select-player-\(player.id)")
         .disabled(game.status != "active")
     }

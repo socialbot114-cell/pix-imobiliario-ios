@@ -45,6 +45,10 @@ struct BoardView: View {
                             .shadow(color: Palette.ink.opacity(0.13), radius: 18, x: 0, y: 9)
                             .accessibilityElement(children: .ignore)
                             .accessibilityLabel("Tabuleiro tridimensional com peças originais")
+                            .accessibilityValue(Text(game.players.map { player in
+                                "\(player.name): casa \((player.boardPosition % 20) + 1) de 20"
+                            }.joined(separator: "; ")))
+                            .accessibilityIdentifier("board-scene")
 
                         HStack(spacing: 14) {
                             ZStack {
