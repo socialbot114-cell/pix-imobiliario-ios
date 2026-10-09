@@ -52,6 +52,7 @@ struct HomeView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var balanceFontSize: CGFloat = 34
     @State private var sheet: HomeSheet?
     @State private var showFinishConfirmation = false
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         ZStack {
@@ -89,6 +90,12 @@ struct HomeView: View {
             Button("Continuar jogando", role: .cancel) { }
         } message: {
             Text("O histórico e o resumo continuarão salvos neste iPhone.")
+        }
+        .confirmationDialog("Apagar todas as partidas salvas?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Apagar dados locais", role: .destructive) { store.deleteAllGames() }
+            Button("Cancelar", role: .cancel) { }
+        } message: {
+            Text("Esta ação remove partidas, saldos, imóveis e extratos deste iPhone. Ela não pode ser desfeita.")
         }
         .onAppear {
             let arguments = ProcessInfo.processInfo.arguments
@@ -193,6 +200,7 @@ struct HomeView: View {
                 Spacer()
                 Menu {
                     Button("Nova partida", systemImage: "plus") { sheet = .createGame }
+                    Button("Apagar dados locais", systemImage: "trash", role: .destructive) { showDeleteConfirmation = true }
                     if game.status == "active" {
                         Button("Encerrar partida", systemImage: "flag.checkered", role: .destructive) { showFinishConfirmation = true }
                     }

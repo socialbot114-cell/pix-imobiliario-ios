@@ -84,4 +84,38 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["confirm-bank-operation"].tap()
         XCTAssertTrue(app.staticTexts["M$ 2.650,00"].waitForExistence(timeout: 5))
     }
+
+    func testLargeDynamicTypeKeepsBalanceAndPrimaryActionsReachable() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = [
+            "-ui-testing",
+            "-screenshot-mode",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL"
+        ]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["balance-value"].exists)
+        let pixButton = app.buttons["home-action-PIX"]
+        XCTAssertTrue(pixButton.waitForExistence(timeout: 5))
+        if !pixButton.isHittable { app.swipeUp() }
+        XCTAssertTrue(pixButton.isHittable)
+        XCTAssertTrue(app.tabBars.buttons["Extrato"].exists)
+    }
+
+    func testLocalGameDataCanBeDeletedFromTheGameMenu() throws {
+        app.buttons["create-game-button"].tap()
+        app.buttons["confirm-create-game"].tap()
+        XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
+
+        app.buttons["Opções da partida"].tap()
+        app.buttons["Apagar dados locais"].tap()
+        let confirmDelete = app.buttons.matching(identifier: "Apagar dados locais").lastMatch
+        XCTAssertTrue(confirmDelete.waitForExistence(timeout: 4))
+        confirmDelete.tap()
+
+        XCTAssertTrue(app.staticTexts["A mesa está pronta."].waitForExistence(timeout: 6))
+    }
 }

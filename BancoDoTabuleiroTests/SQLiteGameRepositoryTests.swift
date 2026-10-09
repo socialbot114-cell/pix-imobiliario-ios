@@ -229,4 +229,10 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         let restored = try XCTUnwrap(reopened.latestGame())
         XCTAssertEqual(restored.players.first?.boardPosition, 2)
     }
+
+    func testPlayerCanDeleteAllLocalGameData() throws {
+        try repository.deleteAllGames()
+        XCTAssertNil(try repository.latestGame())
+        XCTAssertThrowsError(try repository.snapshot(gameID: game.id))
+    }
 }

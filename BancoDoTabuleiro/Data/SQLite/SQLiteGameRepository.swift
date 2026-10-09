@@ -274,6 +274,12 @@ final class SQLiteGameRepository {
         try execute("UPDATE games SET status = 'finished', finished_at = ? WHERE id = ? AND status = 'active'", [.text(Self.now()), .integer(gameID)])
     }
 
+    func deleteAllGames() throws {
+        try transaction {
+            try execute("DELETE FROM games")
+        }
+    }
+
     private func performTransfer(gameID: Int64, fromPlayerID: Int64, toPlayerID: Int64, amountMinor: Int64, kind: String, description: String, propertyID: Int64?, idempotencyKey: String) throws -> Int64 {
         guard amountMinor > 0 else { throw GameStoreError.invalidAmount }
         guard fromPlayerID != toPlayerID else { throw GameStoreError.samePlayer }
@@ -631,6 +637,12 @@ final class GameStore: ObservableObject {
     func finishGame() {
         guard let game, let repository else { return }
         do { try repository.closeGame(gameID: game.id); refresh() }
+        catch { errorMessage = error.localizedDescription }
+    }
+
+    func deleteAllGames() {
+        guard let repository else { errorMessage = "O banco local não está disponível."; return }
+        do { try repository.deleteAllGames(); game = nil; errorMessage = nil }
         catch { errorMessage = error.localizedDescription }
     }
 

@@ -2,6 +2,8 @@
 
 App iOS local-first para controlar partidas físicas de jogos imobiliários. Saldos são fictícios, persistidos em SQLite no iPhone e não representam dinheiro real.
 
+![Ícone original do Banco do Tabuleiro](BancoDoTabuleiro/Assets.xcassets/AppIcon.appiconset/AppIcon.png)
+
 ## MVP atual
 
 - Criar partida local para 2–6 jogadores.
@@ -12,6 +14,8 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.
 - Posição visual de cada peça salva localmente e retomada ao reabrir a partida.
 - Alternar o jogador ativo tocando no avatar; transferências, compras e cobranças usam esse contexto inicial.
+- Apagar todas as partidas e os dados locais pelo menu da partida.
+- Ícone original verde/dourado incluído no asset catalog iOS.
 
 O MVP é hot-seat: participantes usam o mesmo iPhone. O código local identifica a sessão, mas não conecta outros aparelhos. Multiplayer entre dispositivos exige backend e fica fora desta fase.
 
