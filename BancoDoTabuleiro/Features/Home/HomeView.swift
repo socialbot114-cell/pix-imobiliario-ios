@@ -49,6 +49,7 @@ private enum HomeSheet: String, Identifiable {
 struct HomeView: View {
     @EnvironmentObject private var store: GameStore
     @Binding var selectedTab: Int
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .largeTitle) private var balanceFontSize: CGFloat = 34
     @State private var sheet: HomeSheet?
     @State private var showFinishConfirmation = false
@@ -129,6 +130,8 @@ struct HomeView: View {
                 Text("Seu jogo, bem organizado")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundStyle(Palette.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
             Spacer()
             if store.game != nil {
@@ -205,6 +208,8 @@ struct HomeView: View {
                     Text(game.name)
                         .font(.system(.title2, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
                     Text(game.status == "active" ? "PARTIDA EM ANDAMENTO" : "PARTIDA ENCERRADA")
                         .font(.system(size: 9, weight: .black, design: .rounded))
                         .tracking(1.3)
@@ -232,11 +237,20 @@ struct HomeView: View {
             playerCard(game)
 
             if game.status == "active" {
-                HStack(spacing: 11) {
-                    actionButton("PIX", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
-                    actionButton("Banco", icon: "building.columns.fill", color: Palette.ink) { sheet = .bank }
-                    actionButton("Cobrar", icon: "qrcode", color: Palette.burgundy) { sheet = .charge }
-                    actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.forestLight) { selectedTab = 1 }
+                if dynamicTypeSize.isAccessibilitySize {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 11) {
+                        actionButton("PIX", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
+                        actionButton("Banco", icon: "building.columns.fill", color: Palette.ink) { sheet = .bank }
+                        actionButton("Cobrar", icon: "qrcode", color: Palette.burgundy) { sheet = .charge }
+                        actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.forestLight) { selectedTab = 1 }
+                    }
+                } else {
+                    HStack(spacing: 11) {
+                        actionButton("PIX", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
+                        actionButton("Banco", icon: "building.columns.fill", color: Palette.ink) { sheet = .bank }
+                        actionButton("Cobrar", icon: "qrcode", color: Palette.burgundy) { sheet = .charge }
+                        actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.forestLight) { selectedTab = 1 }
+                    }
                 }
 
                 if !game.pendingRequests.isEmpty {
@@ -287,16 +301,30 @@ struct HomeView: View {
                 .lineLimit(1)
                 .foregroundStyle(.white)
                 .accessibilityIdentifier("balance-value")
-            HStack(spacing: 7) {
-                Image(systemName: "person.crop.circle.fill")
-                    .foregroundStyle(Palette.goldLight)
-                Text(game.currentPlayer?.name ?? "Jogador")
-                    .foregroundStyle(Palette.card.opacity(0.82))
-                Spacer()
-                Text("\(game.players.count) jogadores")
-                    .foregroundStyle(Palette.card.opacity(0.82))
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 7) {
+                    Label(game.currentPlayer?.name ?? "Jogador", systemImage: "person.crop.circle.fill")
+                        .foregroundStyle(Palette.card.opacity(0.82))
+                    Text("\(game.players.count) jogadores")
+                        .foregroundStyle(Palette.card.opacity(0.82))
+                }
+                .font(.system(.caption, design: .rounded, weight: .semibold))
+            } else {
+                HStack(spacing: 7) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .foregroundStyle(Palette.goldLight)
+                    Text(game.currentPlayer?.name ?? "Jogador")
+                        .foregroundStyle(Palette.card.opacity(0.82))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Spacer(minLength: 4)
+                    Text("\(game.players.count) jogadores")
+                        .foregroundStyle(Palette.card.opacity(0.82))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+                .font(.system(.caption, design: .rounded, weight: .semibold))
             }
-            .font(.system(.caption, design: .rounded, weight: .semibold))
         }
         .padding(21)
         .background(LinearGradient(colors: [Palette.forest, Color(hex: 0x0A4938), Palette.ink], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 25))
@@ -326,6 +354,7 @@ struct HomeView: View {
                                     .font(.system(.caption2, design: .rounded, weight: .semibold))
                                     .foregroundStyle(Palette.ink)
                                     .lineLimit(1)
+                                    .minimumScaleFactor(0.65)
                             }
                         }
                         .buttonStyle(.plain)
@@ -419,6 +448,7 @@ struct HomeView: View {
                     .font(.system(.caption2, design: .rounded, weight: .bold))
                     .foregroundStyle(Palette.ink)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
