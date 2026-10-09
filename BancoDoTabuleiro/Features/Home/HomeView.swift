@@ -130,8 +130,9 @@ struct HomeView: View {
                 Text("Seu jogo, bem organizado")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundStyle(Palette.muted)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     .minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             if store.game != nil {
