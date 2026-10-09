@@ -118,4 +118,17 @@ final class BankFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["A mesa está pronta."].waitForExistence(timeout: 6))
     }
+
+    func testPrimaryControlsExposeAccessibleLabels() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-screenshot-mode"]
+        app.launch()
+
+        let pixButton = app.buttons["home-action-PIX"]
+        XCTAssertTrue(pixButton.waitForExistence(timeout: 8))
+        XCTAssertTrue(pixButton.label.localizedCaseInsensitiveContains("PIX"))
+        XCTAssertTrue(app.buttons["select-player-1"].label.contains("Ana"))
+        XCTAssertTrue(app.tabBars.buttons["Extrato"].label.contains("Extrato"))
+    }
 }
