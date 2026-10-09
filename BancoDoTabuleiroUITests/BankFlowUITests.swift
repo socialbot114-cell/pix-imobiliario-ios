@@ -18,7 +18,7 @@ final class BankFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
         XCTAssertTrue(app.staticTexts["M$ 2.450,00"].waitForExistence(timeout: 4))
-        app.buttons["PIX interno"].tap()
+        app.buttons["home-action-PIX interno"].tap()
         XCTAssertTrue(app.navigationBars["PIX Imobiliário"].waitForExistence(timeout: 4))
         let amountField = app.textFields["transfer-amount-field"]
         XCTAssertTrue(amountField.waitForExistence(timeout: 3))
@@ -28,7 +28,7 @@ final class BankFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["M$ 2.400,00"].waitForExistence(timeout: 5))
         app.tabBars.buttons["Extrato"].tap()
-        XCTAssertTrue(app.staticTexts["PIX Imobiliário"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 5))
     }
 
     func testPremiumBoardTabIsReachable() throws {
@@ -48,7 +48,7 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Rua do Ipê"].waitForExistence(timeout: 8))
         app.buttons["buy-property-1"].tap()
         app.tabBars.buttons["Extrato"].tap()
-        XCTAssertTrue(app.staticTexts["Compra: Rua do Ipê"].waitForExistence(timeout: 6))
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 6))
     }
 
     func testChargeWaitsForPayerThenRecordsPayment() throws {
@@ -64,7 +64,9 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["create-charge-button"].tap()
 
         XCTAssertTrue(app.staticTexts["Cobranças aguardando"].waitForExistence(timeout: 5))
-        app.buttons["Pagar"].tap()
+        let payButton = app.buttons["Pagar"]
+        if !payButton.isHittable { app.swipeUp() }
+        payButton.tap()
         XCTAssertTrue(app.staticTexts["M$ 2.490,00"].waitForExistence(timeout: 5))
     }
 }

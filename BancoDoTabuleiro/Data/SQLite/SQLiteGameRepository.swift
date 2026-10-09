@@ -166,9 +166,18 @@ final class SQLiteGameRepository {
     @discardableResult
     func payRequest(gameID: Int64, requestID: Int64) throws -> Int64 {
         try transaction {
-            guard let request = try queryOne("SELECT creator_player_id, payer_player_id, amount_minor, description, status FROM payment_requests WHERE id = ? AND game_id = ?", [.integer(requestID), .integer(gameID)], map: { row in
-                (sqlite3_column_int64(row, 0), sqlite3_column_int64(row, 1), sqlite3_column_int64(row, 2), text(row, 3), text(row, 4))
-            }), request.4 == "pending" else { throw GameStoreError.requestUnavailable }
+            guard let request = try queryOne("SELECT creator_player_id, payer_player_id, amount_minor, description, status, transaction_id FROM payment_requests WHERE id = ? AND game_id = ?", [.integer(requestID), .integer(gameID)], map: { row in
+                (
+                    sqlite3_column_int64(row, 0),
+                    sqlite3_column_int64(row, 1),
+                    sqlite3_column_int64(row, 2),
+                    text(row, 3),
+                    text(row, 4),
+                    sqlite3_column_type(row, 5) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 5)
+                )
+            }) else { throw GameStoreError.requestUnavailable }
+            if request.4 == "paid", let transactionID = request.5 { return transactionID }
+            guard request.4 == "pending" else { throw GameStoreError.requestUnavailable }
             let idempotencyKey = "payment-request-\(requestID)"
             if let existing = try transactionID(idempotencyKey: idempotencyKey) { return existing }
             let txID = try transferInsideTransaction(gameID: gameID, fromPlayerID: request.1, toPlayerID: request.0, amountMinor: request.2, kind: "charge", description: request.3, propertyID: nil, idempotencyKey: idempotencyKey)
@@ -197,6 +206,10 @@ final class SQLiteGameRepository {
             PaymentRequest(id: sqlite3_column_int64(row, 0), payerPlayerID: sqlite3_column_int64(row, 1), payerName: text(row, 2), creatorName: text(row, 3), amountMinor: sqlite3_column_int64(row, 4), description: text(row, 5), status: text(row, 6))
         }
         return GameSnapshot(id: gameID, name: game.0, inviteCode: game.1, status: game.2, activePlayerID: game.3, players: players, properties: properties, transactions: transactions, pendingRequests: requests)
+    }
+
+    func transactionEntriesBalance(transactionID: Int64) throws -> Int64 {
+        try queryInt("SELECT COALESCE(SUM(amount_minor), 0) FROM transaction_entries WHERE transaction_id = ?", [.integer(transactionID)]) ?? 0
     }
 
     func closeGame(gameID: Int64) throws {
@@ -458,7 +471,12 @@ final class GameStore: ObservableObject {
             }
         }
         do {
-            let localRepository = try repository ?? SQLiteGameRepository(databaseURL: isUITesting ? testURL : nil)
+            let localRepository: SQLiteGameRepository
+            if let repository {
+                localRepository = repository
+            } else {
+                localRepository = try SQLiteGameRepository(databaseURL: isUITesting ? testURL : nil)
+            }
             self.repository = localRepository
             game = try localRepository.latestGame()
             if game == nil, arguments.contains("-screenshot-mode") {

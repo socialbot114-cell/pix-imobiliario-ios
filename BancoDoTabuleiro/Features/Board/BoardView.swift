@@ -86,7 +86,9 @@ struct BoardView: View {
             }
         }
         .onChange(of: selectedPlayer) { _, newIndex in
-            guard let players = store.game?.players, players.indices.contains(newIndex) else { return }
+            guard store.game?.status == "active",
+                  let players = store.game?.players,
+                  players.indices.contains(newIndex) else { return }
             store.selectActivePlayer(players[newIndex])
         }
     }

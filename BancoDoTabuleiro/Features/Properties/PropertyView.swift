@@ -21,14 +21,16 @@ struct PropertyView: View {
                                     .foregroundStyle(Palette.muted)
                             }
                             Spacer()
-                            Button { showingAddProperty = true } label: {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 42, height: 42)
-                                    .background(Palette.forest, in: Circle())
+                            if game.status == "active" {
+                                Button { showingAddProperty = true } label: {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 42, height: 42)
+                                        .background(Palette.forest, in: Circle())
+                                }
+                                .accessibilityLabel("Cadastrar imóvel")
                             }
-                            .accessibilityLabel("Cadastrar imóvel")
                         }
 
                         summary(game)
@@ -109,7 +111,7 @@ struct PropertyView: View {
             .padding(.vertical, 11)
             .background(Palette.canvas, in: RoundedRectangle(cornerRadius: 14))
 
-            if property.isAvailable {
+            if property.isAvailable && game.status == "active" {
                 Button {
                     guard let buyerID = game.currentPlayer?.id else { return }
                     store.clearError()
@@ -123,7 +125,7 @@ struct PropertyView: View {
                         .background(Palette.forest, in: RoundedRectangle(cornerRadius: 13))
                 }
                 .accessibilityIdentifier("buy-property-\(property.id)")
-            } else if property.ownerPlayerID != game.currentPlayer?.id {
+            } else if game.status == "active", property.ownerPlayerID != game.currentPlayer?.id {
                 Button { propertyForRent = property } label: {
                     Label("Cobrar aluguel", systemImage: "key.fill")
                         .font(.system(.subheadline, design: .rounded, weight: .bold))

@@ -32,6 +32,7 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         XCTAssertEqual(game.transactions.count, 1)
         XCTAssertEqual(game.transactions[0].kind, "initial")
         XCTAssertEqual(game.transactions[0].amountMinor, 2_000_00)
+        XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: game.transactions[0].id), 0)
     }
 
     func testTransferUpdatesBothPlayersAndSameIdempotencyKeyDoesNotDuplicate() throws {
@@ -56,6 +57,7 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         let result = try repository.snapshot(gameID: game.id)
 
         XCTAssertEqual(first, retry)
+        XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: first), 0)
         XCTAssertEqual(result.players.map(\.balanceMinor), [975_00, 1_025_00])
         XCTAssertEqual(result.transactions.filter { $0.kind == "transfer" }.count, 1)
     }

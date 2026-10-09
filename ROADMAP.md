@@ -19,7 +19,7 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | Semana | Marco | Entregas | Saída esperada | Estado |
 |---|---|---|---|---|
 | 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
-| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Código criado; aguardando primeiro Actions |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Código criado; primeiro run bloqueado pelo billing da conta |
 | 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | Implementado; execução XCTest pendente |
 | 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Primeira versão implementada; revisão visual pendente |
 | 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Primeira versão implementada; execução XCTest pendente |
@@ -99,7 +99,8 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 | Data | Semana/marco | Mudança ou teste | Resultado / evidência | Próximo passo |
 |---|---|---|---|---|
 | 2026-10-09 | 0 → 1 | Roadmap criado; confirmados hot-seat, SQLite local, Blender e CI iOS | Pasta-alvo continha apenas a imagem de referência; Xcode/Swift/Blender não estão instalados neste Linux; GitHub CLI autenticado | Criar app, testes e workflow macOS; preparar execução remota |
-| 2026-10-09 | Rodada 1 · base, dados e telas P0 | Criados Xcode project/scheme, app SwiftUI, tema premium, painel, criação de partida, seleção persistida do jogador ativo, transferências, cobranças, imóveis, extrato e tabuleiro SceneKit com fallback | Script Blender passou `ast.parse`; schema e migração v1→v2 executados em SQLite em memória; YAML do Actions válido. Build SwiftUI/XCTest ainda não executado por falta de Xcode neste host. | Inicializar repo privado, disparar primeiro workflow, baixar prints/xcresult e corrigir bloqueios encontrados |
+| 2026-10-09 | Rodada 1 · base, dados e telas P0 | Criados Xcode project/scheme, app SwiftUI, tema premium, painel, criação de partida, seleção persistida do jogador ativo, transferências, cobranças, imóveis, extrato e tabuleiro SceneKit com fallback | Script Blender passou `ast.parse`; schema e migração v1→v2 executados em SQLite em memória; YAML do Actions válido. Repo privado criado e código enviado. Run [37949315535](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37949315535) não iniciou jobs: annotation do GitHub informa pagamento/spending limit. Nenhum print ou build disponível; Xcode/Swift também não existem neste host. | Resolver billing do GitHub Actions; repetir o run, analisar logs/prints e corrigir o primeiro erro de build/teste |
+| 2026-10-09 | Rodada 2 · revisão local e integridade | Adicionada seleção persistente do jogador ativo; operações bloqueadas após encerrar; retry de cobrança paga retorna a operação original; XCTest cobre saldo do livro, idempotência e retomada de jogador; refinados identificadores de UI | Simulação SQLite em memória validou migrações v1→v2, saldo/lançamentos balanceados, seleção ativa e cobrança; Blender Python AST, YAML Actions e referências/caminhos do Xcode project passaram. Repo atualizado localmente; Actions segue bloqueado por billing. | Enviar rodada 2 ao repositório; obter build e capturas após desbloqueio de billing |
 
 ### Registro detalhado da rodada 1
 
@@ -108,5 +109,6 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 - `BancoDoTabuleiro/Features/Board/BoardView.swift`: tela 3D SceneKit, movimento visual de peças e fallback procedural se o USDZ não estiver no bundle.
 - `Scripts/generate_board_assets.py`: fonte Blender para tabuleiro, propriedades genéricas, seis peças, dados, cena `.blend`, preview e export USDZ.
 - `BancoDoTabuleiroTests/` e `BancoDoTabuleiroUITests/`: testes iniciais de saldo, idempotência, fundos insuficientes, compra/aluguel, cobrança, encerramento e fluxos visuais.
-- `.github/workflows/ios-visual-review.yml`: geração Blender opcional na primeira rodada; build, XCTest, capturas do simulador e upload de artefatos no runner macOS.
-- **Evidência pendente:** nenhum print veio do GitHub Actions ainda. O primeiro run e sua revisão são o próximo gate; as telas não serão marcadas como aprovadas antes de analisar os artefatos reais.
+- `.github/workflows/ios-visual-review.yml`: geração Blender, build, XCTest, capturas do simulador e upload de artefatos no runner macOS.
+- **Bloqueio externo:** Actions não iniciou os steps devido ao billing/spending limit da conta. O artefato `PIX-prints-iphone` não foi produzido; nenhuma tela foi marcada como aprovada sem inspeção visual real.
+- **Revisão local:** o verificador Python de referências Xcode inicialmente tratou `SQLiteGameRepositoryTests.swift` e `BankFlowUITests.swift` como caminhos relativos à raiz; eles são relativos aos grupos XCTest próprios do projeto. Não é um arquivo ausente; a estrutura foi conferida no `.pbxproj` e no diretório.

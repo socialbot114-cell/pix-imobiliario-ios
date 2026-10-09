@@ -275,9 +275,9 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 17) {
                     ForEach(game.players) { player in
-                        Button {
-                            store.selectActivePlayer(player)
-                        } label: {
+                            Button {
+                                store.selectActivePlayer(player)
+                            } label: {
                             VStack(spacing: 6) {
                                 ZStack(alignment: .topTrailing) {
                                     Circle().fill(Color(hexString: player.colorHex)).frame(width: 48, height: 48)
@@ -297,6 +297,7 @@ struct HomeView: View {
                         .frame(width: 58)
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("select-player-\(player.id)")
+                        .disabled(game.status != "active")
                     }
                 }
             }
@@ -449,6 +450,7 @@ struct TransactionRow: View {
         }
         .padding(.vertical, 3)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("transaction-row-\(transaction.id)")
     }
 }
 
