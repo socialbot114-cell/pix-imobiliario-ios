@@ -137,6 +137,12 @@ jobs:
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-charge
             elif [ "$route" = privacy ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-privacy
+            elif [ "$route" = create-game ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-create-game
+            elif [ "$route" = player-setup ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-create-game -capture-player-setup
+            elif [ "$route" = ranking ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-ranking
             elif [ "$route" = large-text ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL
             else
@@ -154,6 +160,9 @@ jobs:
           capture 07-statement statement
           capture 08-privacy privacy
           capture 09-large-text large-text
+          capture 10-onboarding-game create-game
+          capture 11-onboarding-players player-setup
+          capture 12-ranking ranking
 
       - name: Build visual contact sheet
         if: always() && steps.build.outcome == 'success'

@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, bank, charge, privacy
+    case createGame, transfer, bank, charge, privacy, leaderboard
     var id: String { rawValue }
 }
 
@@ -82,9 +82,15 @@ struct HomeView: View {
                 case .bank: BankOperationView()
                 case .charge: ChargeView()
                 case .privacy: PrivacyAndDataView()
+                case .leaderboard:
+                    if let game = store.game {
+                        LeaderboardView(game: game)
+                    } else {
+                        EmptySection(title: "Ranking", detail: "Crie uma partida para ver a classificação.")
+                    }
                 }
             }
-            .presentationDetents(selected == .privacy ? [.large] : [.medium, .large])
+            .presentationDetents(selected == .createGame || selected == .privacy || selected == .leaderboard ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
@@ -110,6 +116,10 @@ struct HomeView: View {
                 sheet = .charge
             } else if arguments.contains("-capture-privacy") {
                 sheet = .privacy
+            } else if arguments.contains("-capture-create-game") {
+                sheet = .createGame
+            } else if arguments.contains("-capture-ranking") {
+                sheet = .leaderboard
             }
         }
     }
@@ -236,6 +246,7 @@ struct HomeView: View {
 
             balanceCard(game)
             playerCard(game)
+            rankingCard(game)
 
             if game.status == "active" {
                 if dynamicTypeSize.isAccessibilitySize {
@@ -257,8 +268,6 @@ struct HomeView: View {
                 if !game.pendingRequests.isEmpty {
                     pendingPayments(game.pendingRequests)
                 }
-            } else {
-                finalSummary(game)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -412,44 +421,42 @@ struct HomeView: View {
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
     }
 
-    private func finalSummary(_ game: GameSnapshot) -> some View {
-        let ranking = game.players.map { player in
-            let propertyValue = game.properties
-                .filter { $0.ownerPlayerID == player.id }
-                .reduce(Int64(0)) { $0 + $1.purchasePriceMinor }
-            return (player: player, wealth: player.balanceMinor + propertyValue, properties: game.properties.filter { $0.ownerPlayerID == player.id }.count)
-        }.sorted { $0.wealth > $1.wealth }
-
-        return VStack(alignment: .leading, spacing: 13) {
-            Label("RESUMO FINAL", systemImage: "flag.checkered")
-                .font(.system(size: 9, weight: .black, design: .rounded))
-                .tracking(1.2)
-                .foregroundStyle(Palette.gold)
-            Text("Patrimônio da partida")
-                .font(.system(.title3, design: .serif, weight: .bold))
-                .foregroundStyle(Palette.ink)
-            ForEach(ranking.indices, id: \.self) { index in
-                let result = ranking[index]
-                HStack(spacing: 10) {
-                    Text(index == 0 ? "♛" : "\(index + 1)")
-                        .font(.system(.headline, design: .rounded, weight: .bold))
-                        .foregroundStyle(index == 0 ? Palette.gold : Palette.muted)
-                        .frame(width: 28)
-                    Circle().fill(Color(hexString: result.player.colorHex)).frame(width: 12, height: 12)
-                    Text(result.player.name).font(.system(.subheadline, design: .rounded, weight: .semibold)).foregroundStyle(Palette.ink)
-                    Spacer()
-                    Text("\(result.properties) imóveis")
-                        .font(.system(.caption2, design: .rounded)).foregroundStyle(Palette.muted)
-                    Text(MoneyFormat.string(result.wealth))
-                        .font(.system(.caption, design: .rounded, weight: .bold)).foregroundStyle(Palette.forest)
+    private func rankingCard(_ game: GameSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(game.status == "active" ? "Ranking ao vivo" : "Resultado final")
+                        .font(.system(.title3, design: .serif, weight: .bold))
+                        .foregroundStyle(Palette.ink)
+                    Text(game.status == "active" ? "A classificação acompanha a partida." : "Classificação da partida encerrada.")
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundStyle(Palette.muted)
                 }
+                Spacer(minLength: 8)
+                Button("Ver classificação") { sheet = .leaderboard }
+                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.forest)
+                    .accessibilityIdentifier("show-leaderboard")
             }
-            Text("Patrimônio calculado pelo saldo disponível e preço cadastrado dos imóveis.")
+
+            ForEach(game.standings.prefix(3)) { standing in
+                PlayerStandingRow(standing: standing)
+            }
+
+            if game.standings.count > 3 {
+                Text("+ \(game.standings.count - 3) jogadores na classificação")
+                    .font(.system(.caption, design: .rounded, weight: .medium))
+                    .foregroundStyle(Palette.muted)
+            }
+
+            Text("Patrimônio = saldo disponível + preço de compra dos imóveis.")
                 .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(Palette.muted)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(18)
+        .padding(16)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+        .accessibilityIdentifier("live-ranking-card")
     }
 
     private func actionButton(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {

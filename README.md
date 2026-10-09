@@ -7,9 +7,13 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 ## MVP atual
 
 - Criar partida local para 2–6 jogadores.
+- Configurar a partida em duas etapas: nome e saldo inicial, depois cadastro visual dos jogadores com nome, cor e peça.
+- Validar nomes vazios ou repetidos; adicionar e remover participantes de 2 a 6 antes de iniciar.
 - Distribuir dinheiro inicial e registrar o livro de lançamentos.
 - Fazer transferências internas, criar cobranças, cadastrar e comprar propriedades e registrar aluguel.
 - Registrar créditos e pagamentos ao banco virtual (por exemplo, renda de passagem ou taxa da partida).
+- Acompanhar o ranking ao vivo no painel e consultar a classificação completa, com saldo e imóveis separados.
+- Ver o resultado final após encerrar a partida; empates compartilham a mesma posição.
 - Consultar painel, extrato, carteira de imóveis e resumo visual do tabuleiro.
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.
 - Posição visual de cada peça salva localmente e retomada ao reabrir a partida.
@@ -18,6 +22,8 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Ícone original verde/dourado incluído no asset catalog iOS.
 
 A tela **Privacidade e dados** explica que o MVP é local, sem login/rede/analytics, e que os saldos são moeda fictícia.
+
+O ranking calcula patrimônio como saldo disponível mais preço de compra cadastrado dos imóveis. O valor aparece separado do saldo em dinheiro fictício; renda futura de aluguel não é contabilizada.
 
 O MVP é hot-seat: participantes usam o mesmo iPhone. O código local identifica a sessão, mas não conecta outros aparelhos. Multiplayer entre dispositivos exige backend e fica fora desta fase.
 

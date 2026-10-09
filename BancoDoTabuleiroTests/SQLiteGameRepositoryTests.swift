@@ -36,6 +36,36 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         }
     }
 
+    func testStandingsSeparateCashFromPropertiesAndShareTiedRanks() throws {
+        let initialStandings = game.standings
+        XCTAssertEqual(initialStandings.map(\.rank), [1, 1])
+        XCTAssertEqual(initialStandings.map(\.cashBalanceMinor), [1_000_00, 1_000_00])
+        XCTAssertEqual(initialStandings.map(\.propertyValueMinor), [0, 0])
+
+        let buyer = try XCTUnwrap(game.players.first)
+        let property = try XCTUnwrap(game.properties.first)
+        try repository.buyProperty(gameID: game.id, playerID: buyer.id, propertyID: property.id, idempotencyKey: "standing-buy")
+
+        let afterPurchase = try repository.snapshot(gameID: game.id).standings
+        let buyerStanding = try XCTUnwrap(afterPurchase.first(where: { $0.player.id == buyer.id }))
+        XCTAssertEqual(buyerStanding.cashBalanceMinor, 780_00)
+        XCTAssertEqual(buyerStanding.propertyValueMinor, 220_00)
+        XCTAssertEqual(buyerStanding.netWorthMinor, 1_000_00)
+        XCTAssertEqual(afterPurchase.map(\.rank), [1, 1])
+
+        try repository.bankMovement(
+            gameID: game.id,
+            playerID: buyer.id,
+            amountMinor: 50_00,
+            kind: .receive,
+            description: "Bônus de teste",
+            idempotencyKey: "standing-bonus"
+        )
+        let updatedStandings = try repository.snapshot(gameID: game.id).standings
+        XCTAssertEqual(updatedStandings.map(\.rank), [1, 2])
+        XCTAssertEqual(updatedStandings.first?.netWorthMinor, 1_050_00)
+    }
+
     func testTransferUpdatesBothPlayersAndSameIdempotencyKeyDoesNotDuplicate() throws {
         let payer = try XCTUnwrap(game.players.first)
         let receiver = try XCTUnwrap(game.players.last)

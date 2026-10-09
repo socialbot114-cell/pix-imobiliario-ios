@@ -12,13 +12,19 @@ final class BankFlowUITests: XCTestCase {
 
     func testCreateGameAndRegisterTransfer() throws {
         XCTAssertTrue(app.staticTexts["A mesa está pronta."].waitForExistence(timeout: 8))
-        app.buttons["create-game-button"].tap()
-        XCTAssertTrue(app.navigationBars["Nova partida"].waitForExistence(timeout: 4))
-        app.buttons["confirm-create-game"].tap()
+        createGameWithPlayers()
 
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
         XCTAssertTrue(app.staticTexts["M$ 2.450,00"].waitForExistence(timeout: 4))
-        app.buttons["home-action-PIX"].tap()
+        openLeaderboard()
+        let anaStanding = app.descendants(matching: .any)["leaderboard-row-1"]
+        let brunoStanding = app.descendants(matching: .any)["leaderboard-row-2"]
+        XCTAssertTrue(anaStanding.label.contains("1º"))
+        XCTAssertTrue(brunoStanding.label.contains("1º"))
+        XCTAssertTrue(anaStanding.label.contains("M$ 2.450,00"))
+        app.buttons["Fechar"].tap()
+
+        tapHomeAction("PIX")
         XCTAssertTrue(app.navigationBars["PIX Imobiliário"].waitForExistence(timeout: 4))
         let amountField = app.textFields["transfer-amount-field"]
         XCTAssertTrue(amountField.waitForExistence(timeout: 3))
@@ -27,8 +33,43 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["Confirmar"].tap()
 
         XCTAssertTrue(app.staticTexts["M$ 2.400,00"].waitForExistence(timeout: 5))
+        openLeaderboard()
+        XCTAssertTrue(app.descendants(matching: .any)["leaderboard-row-1"].label.contains("2º"))
+        XCTAssertTrue(app.descendants(matching: .any)["leaderboard-row-2"].label.contains("1º"))
+        XCTAssertTrue(app.descendants(matching: .any)["leaderboard-row-2"].label.contains("M$ 2.500,00"))
+        app.buttons["Fechar"].tap()
         app.tabBars.buttons["Extrato"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["transaction-row-3"].waitForExistence(timeout: 5))
+    }
+
+    func testPlayerSetupValidatesDuplicateNamesAndSupportsAddingPlayers() throws {
+        app.buttons["create-game-button"].tap()
+        XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 4))
+        app.buttons["continue-to-players"].tap()
+
+        let createButton = app.buttons["confirm-create-game"]
+        XCTAssertTrue(createButton.waitForExistence(timeout: 4))
+        XCTAssertFalse(createButton.isEnabled)
+
+        let addPlayerButton = app.buttons["add-player-button"]
+        if !addPlayerButton.isHittable { app.swipeUp() }
+        addPlayerButton.tap()
+        XCTAssertTrue(app.textFields["player-name-3"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["player-count"].label.contains("3 de 6"))
+        let removePlayerButton = app.buttons["remove-player-3"]
+        if !removePlayerButton.isHittable { app.swipeUp() }
+        removePlayerButton.tap()
+        XCTAssertFalse(app.textFields["player-name-3"].exists)
+        XCTAssertTrue(app.staticTexts["player-count"].label.contains("2 de 6"))
+
+        let firstName = app.textFields["player-name-1"]
+        let secondName = app.textFields["player-name-2"]
+        firstName.tap()
+        firstName.typeText("Ana")
+        secondName.tap()
+        secondName.typeText("ana")
+        XCTAssertFalse(createButton.isEnabled)
+        XCTAssertTrue(app.descendants(matching: .any)["setup-validation-message"].exists)
     }
 
     func testPremiumBoardTabIsReachable() throws {
@@ -55,10 +96,9 @@ final class BankFlowUITests: XCTestCase {
     }
 
     func testChargeWaitsForPayerThenRecordsPayment() throws {
-        app.buttons["create-game-button"].tap()
-        app.buttons["confirm-create-game"].tap()
+        createGameWithPlayers()
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
-        app.buttons["home-action-Cobrar"].tap()
+        tapHomeAction("Cobrar")
         XCTAssertTrue(app.navigationBars["Nova cobrança"].waitForExistence(timeout: 4))
         let amountField = app.textFields["charge-amount-field"]
         XCTAssertTrue(amountField.waitForExistence(timeout: 3))
@@ -74,10 +114,9 @@ final class BankFlowUITests: XCTestCase {
     }
 
     func testBankCanCreditStartingSquareIncome() throws {
-        app.buttons["create-game-button"].tap()
-        app.buttons["confirm-create-game"].tap()
+        createGameWithPlayers()
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
-        app.buttons["home-action-Banco"].tap()
+        tapHomeAction("Banco")
         XCTAssertTrue(app.navigationBars["Movimentação do banco"].waitForExistence(timeout: 4))
         let amountField = app.textFields["bank-operation-amount"]
         amountField.tap()
@@ -112,8 +151,7 @@ final class BankFlowUITests: XCTestCase {
     }
 
     func testLocalGameDataCanBeDeletedFromTheGameMenu() throws {
-        app.buttons["create-game-button"].tap()
-        app.buttons["confirm-create-game"].tap()
+        createGameWithPlayers()
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
 
         app.buttons["Opções da partida"].tap()
@@ -146,5 +184,46 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Privacidade"].waitForExistence(timeout: 4))
         XCTAssertTrue(app.staticTexts["Seus dados ficam neste iPhone"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["privacy-virtual-currency"].exists)
+    }
+
+    private func createGameWithPlayers(first: String = "Ana", second: String = "Bruno") {
+        app.buttons["create-game-button"].tap()
+        XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
+        app.buttons["continue-to-players"].tap()
+
+        let firstName = app.textFields["player-name-1"]
+        XCTAssertTrue(firstName.waitForExistence(timeout: 5))
+        firstName.tap()
+        firstName.typeText(first)
+        let secondName = app.textFields["player-name-2"]
+        secondName.tap()
+        secondName.typeText(second)
+        app.buttons["confirm-create-game"].tap()
+    }
+
+    private func openLeaderboard() {
+        let openButton = app.buttons["show-leaderboard"]
+        for _ in 0..<4 {
+            if openButton.exists && openButton.isHittable { break }
+            app.swipeDown()
+        }
+        for _ in 0..<5 {
+            if openButton.exists && openButton.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(openButton.waitForExistence(timeout: 5))
+        openButton.tap()
+        XCTAssertTrue(app.navigationBars["Ranking"].waitForExistence(timeout: 5))
+    }
+
+    private func tapHomeAction(_ title: String) {
+        let button = app.buttons["home-action-\(title)"]
+        for _ in 0..<7 {
+            if button.exists && button.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        XCTAssertTrue(button.isHittable)
+        button.tap()
     }
 }

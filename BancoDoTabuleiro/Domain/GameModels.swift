@@ -56,6 +56,50 @@ struct GameSnapshot: Equatable {
     var currentPlayer: GamePlayer? {
         players.first(where: { $0.id == activePlayerID }) ?? players.first
     }
+
+    var standings: [PlayerStanding] {
+        let values = players.enumerated().map { seat, player in
+            let propertyValue = properties
+                .filter { $0.ownerPlayerID == player.id }
+                .reduce(Int64(0)) { $0 + $1.purchasePriceMinor }
+            return (
+                seat: seat,
+                player: player,
+                propertyValue: propertyValue,
+                propertyCount: properties.filter { $0.ownerPlayerID == player.id }.count,
+                netWorth: player.balanceMinor + propertyValue
+            )
+        }
+        .sorted { lhs, rhs in
+            lhs.netWorth == rhs.netWorth ? lhs.seat < rhs.seat : lhs.netWorth > rhs.netWorth
+        }
+
+        var previousNetWorth: Int64?
+        var currentRank = 0
+        return values.enumerated().map { index, value in
+            if previousNetWorth != value.netWorth { currentRank = index + 1 }
+            previousNetWorth = value.netWorth
+            return PlayerStanding(
+                player: value.player,
+                cashBalanceMinor: value.player.balanceMinor,
+                propertyValueMinor: value.propertyValue,
+                propertyCount: value.propertyCount,
+                netWorthMinor: value.netWorth,
+                rank: currentRank
+            )
+        }
+    }
+}
+
+struct PlayerStanding: Identifiable, Equatable {
+    let player: GamePlayer
+    let cashBalanceMinor: Int64
+    let propertyValueMinor: Int64
+    let propertyCount: Int
+    let netWorthMinor: Int64
+    let rank: Int
+
+    var id: Int64 { player.id }
 }
 
 struct NewPlayer {
