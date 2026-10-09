@@ -246,7 +246,6 @@ struct HomeView: View {
 
             balanceCard(game)
             playerCard(game)
-            rankingCard(game)
 
             if game.status == "active" {
                 if dynamicTypeSize.isAccessibilitySize {
@@ -269,6 +268,8 @@ struct HomeView: View {
                     pendingPayments(game.pendingRequests)
                 }
             }
+
+            rankingCard(game)
 
             VStack(alignment: .leading, spacing: 12) {
                 SectionTitle(title: "Últimas movimentações", action: "Ver extrato", actionHandler: { selectedTab = 3 })
