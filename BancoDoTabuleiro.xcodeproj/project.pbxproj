@@ -56,7 +56,7 @@
 		A2000000000000000000000E /* Art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Art.scnassets; sourceTree = "<group>"; };
 		A2000000000000000000000F /* BancoDoTabuleiro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BancoDoTabuleiro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000010 /* BancoDoTabuleiroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BancoDoTabuleiroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A20000000000000000000011 /* BancoDoTabuleiroUITests-Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BancoDoTabuleiroUITests-Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000011 /* BancoDoTabuleiroUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BancoDoTabuleiroUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,7 +103,7 @@
 		A60000000000000000000003 /* BancoDoTabuleiroTests */ = {isa = PBXGroup; children = (A2000000000000000000000B /* SQLiteGameRepositoryTests.swift */, ); path = BancoDoTabuleiroTests; sourceTree = "<group>"; };
 		A60000000000000000000004 /* BancoDoTabuleiroUITests */ = {isa = PBXGroup; children = (A2000000000000000000000C /* BankFlowUITests.swift */, ); path = BancoDoTabuleiroUITests; sourceTree = "<group>"; };
 		A60000000000000000000005 /* Frameworks */ = {isa = PBXGroup; children = (A2000000000000000000000D /* libsqlite3.tbd */, ); name = Frameworks; sourceTree = "<group>"; };
-		A60000000000000000000006 /* Products */ = {isa = PBXGroup; children = (A2000000000000000000000F /* BancoDoTabuleiro.app */, A20000000000000000000010 /* BancoDoTabuleiroTests.xctest */, A20000000000000000000011 /* BancoDoTabuleiroUITests-Runner.app */, ); name = Products; sourceTree = "<group>"; };
+		A60000000000000000000006 /* Products */ = {isa = PBXGroup; children = (A2000000000000000000000F /* BancoDoTabuleiro.app */, A20000000000000000000010 /* BancoDoTabuleiroTests.xctest */, A20000000000000000000011 /* BancoDoTabuleiroUITests.xctest */, ); name = Products; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */

@@ -8,3 +8,5 @@ xcuserdata/
 *.sqlite-shm
 *.sqlite-wal
 visual-review/
+*.blend1
+*.blend2

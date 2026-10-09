@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, charge
+    case createGame, transfer, bank, charge
     var id: String { rawValue }
 }
 
@@ -76,6 +76,7 @@ struct HomeView: View {
                 switch selected {
                 case .createGame: CreateGameView()
                 case .transfer: TransferView()
+                case .bank: BankOperationView()
                 case .charge: ChargeView()
                 }
             }
@@ -87,6 +88,11 @@ struct HomeView: View {
             Button("Continuar jogando", role: .cancel) { }
         } message: {
             Text("O histórico e o resumo continuarão salvos neste iPhone.")
+        }
+        .onAppear {
+            if ProcessInfo.processInfo.arguments.contains("-capture-transfer") {
+                sheet = .transfer
+            }
         }
     }
 
@@ -199,9 +205,10 @@ struct HomeView: View {
 
             if game.status == "active" {
                 HStack(spacing: 11) {
-                    actionButton("PIX interno", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
+                    actionButton("PIX", icon: "arrow.left.arrow.right", color: Palette.forest) { sheet = .transfer }
+                    actionButton("Banco", icon: "building.columns.fill", color: Palette.ink) { sheet = .bank }
                     actionButton("Cobrar", icon: "qrcode", color: Palette.burgundy) { sheet = .charge }
-                    actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.ink) { selectedTab = 1 }
+                    actionButton("Tabuleiro", icon: "square.grid.3x3", color: Palette.forestLight) { selectedTab = 1 }
                 }
 
                 if !game.pendingRequests.isEmpty {
@@ -219,7 +226,7 @@ struct HomeView: View {
                         .foregroundStyle(Palette.muted)
                 } else {
                     ForEach(game.transactions.prefix(4)) { transaction in
-                        TransactionRow(transaction: transaction)
+                        TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id)
                     }
                 }
             }
@@ -414,6 +421,25 @@ struct HomeView: View {
 
 struct TransactionRow: View {
     let transaction: GameTransaction
+    var perspectivePlayerID: Int64? = nil
+
+    private var amountLabel: String {
+        let amount = MoneyFormat.string(transaction.amountMinor)
+        if let perspectivePlayerID, transaction.fromPlayerID == perspectivePlayerID { return "−\(amount)" }
+        if let perspectivePlayerID, transaction.toPlayerID == perspectivePlayerID { return "+\(amount)" }
+        return amount
+    }
+
+    private var amountColor: Color {
+        if let perspectivePlayerID, transaction.fromPlayerID == perspectivePlayerID { return Palette.danger }
+        if let perspectivePlayerID, transaction.toPlayerID == perspectivePlayerID { return Palette.success }
+        return Palette.ink
+    }
+
+    private var timestamp: String {
+        guard let date = ISO8601DateFormatter().date(from: transaction.createdAt) else { return transaction.createdAt }
+        return date.formatted(date: .numeric, time: .shortened)
+    }
 
     private var symbol: String {
         switch transaction.kind {
@@ -421,6 +447,8 @@ struct TransactionRow: View {
         case "purchase": return "house.fill"
         case "rent": return "key.fill"
         case "charge": return "qrcode"
+        case "bank_credit": return "arrow.down.left.circle.fill"
+        case "bank_debit": return "arrow.up.right.circle.fill"
         default: return "arrow.left.arrow.right"
         }
     }
@@ -437,14 +465,14 @@ struct TransactionRow: View {
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
                     .lineLimit(1)
-                Text("\(transaction.fromName)  →  \(transaction.toName)")
+                Text("\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(Palette.muted)
             }
             Spacer(minLength: 2)
-            Text(MoneyFormat.string(transaction.amountMinor))
+            Text(amountLabel)
                 .font(.system(.caption, design: .rounded, weight: .bold))
-                .foregroundStyle(transaction.kind == "initial" ? Palette.success : Palette.ink)
+                .foregroundStyle(amountColor)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
         }

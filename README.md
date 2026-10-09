@@ -7,6 +7,7 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Criar partida local para 2–6 jogadores.
 - Distribuir dinheiro inicial e registrar o livro de lançamentos.
 - Fazer transferências internas, criar cobranças, cadastrar e comprar propriedades e registrar aluguel.
+- Registrar créditos e pagamentos ao banco virtual (por exemplo, renda de passagem ou taxa da partida).
 - Consultar painel, extrato, carteira de imóveis e resumo visual do tabuleiro.
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.
 - Alternar o jogador ativo tocando no avatar; transferências, compras e cobranças usam esse contexto inicial.
@@ -30,13 +31,13 @@ O GitHub Actions executa o build/teste no runner macOS, gera screenshots das tel
 
 ## Blender
 
-Requer Blender com suporte à exportação USD. A cena fonte, o preview e o USDZ são gerados por:
+Requer Blender 5.2+ com suporte à exportação USDZ. A cena fonte, o preview e o USDZ são gerados por:
 
 ```sh
 blender --background --python Scripts/generate_board_assets.py -- BancoDoTabuleiro/Art.scnassets
 ```
 
-O USDZ é empacotado pelo Xcode a partir de `BancoDoTabuleiro/Art.scnassets/BoardScene.usdz`. Se ele não estiver presente, a tela usa uma cena SceneKit procedural.
+O projeto inclui a cena fonte `Blender/PIX-Board-Studio.blend`, o preview `Blender/PIX-Board-preview.png` e o USDZ em `BancoDoTabuleiro/Art.scnassets/BoardScene.usdz`. O GitHub Actions regenera os três para revisão. Se o USDZ não estiver presente, a tela usa uma cena SceneKit procedural.
 
 ## Roadmap
 

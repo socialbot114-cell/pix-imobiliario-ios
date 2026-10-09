@@ -15,7 +15,7 @@
             <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "A40000000000000000000002" BuildableName = "BancoDoTabuleiroTests.xctest" BlueprintName = "BancoDoTabuleiroTests" ReferencedContainer = "container:BancoDoTabuleiro.xcodeproj" />
          </TestableReference>
          <TestableReference skipped = "NO" parallelizable = "NO">
-            <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "A40000000000000000000003" BuildableName = "BancoDoTabuleiroUITests-Runner.app" BlueprintName = "BancoDoTabuleiroUITests" ReferencedContainer = "container:BancoDoTabuleiro.xcodeproj" />
+            <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "A40000000000000000000003" BuildableName = "BancoDoTabuleiroUITests.xctest" BlueprintName = "BancoDoTabuleiroUITests" ReferencedContainer = "container:BancoDoTabuleiro.xcodeproj" />
          </TestableReference>
       </Testables>
    </TestAction>

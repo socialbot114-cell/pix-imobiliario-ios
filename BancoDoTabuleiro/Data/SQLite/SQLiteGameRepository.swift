@@ -65,14 +65,16 @@ final class SQLiteGameRepository {
 
             if startingBalanceMinor > 0 {
                 let bankID = try accountID(gameID: gameID, playerID: nil)
-                let total = startingBalanceMinor * Int64(players.count)
-                let txID = try insertTransaction(gameID: gameID, kind: "initial", amount: total, description: "Saldo inicial distribuído", idempotencyKey: "initial-\(gameID)")
-                try addEntry(transactionID: txID, accountID: bankID, amount: -total)
-                try changeBalance(accountID: bankID, amount: -total)
-                for playerID in createdPlayerIDs {
+                for (index, playerID) in createdPlayerIDs.enumerated() {
                     let account = try accountID(gameID: gameID, playerID: playerID)
-                    try addEntry(transactionID: txID, accountID: account, amount: startingBalanceMinor)
-                    try changeBalance(accountID: account, amount: startingBalanceMinor)
+                    let txID = try insertTransaction(
+                        gameID: gameID,
+                        kind: "initial",
+                        amount: startingBalanceMinor,
+                        description: "Saldo inicial · \(players[index].name)",
+                        idempotencyKey: "initial-\(gameID)-\(playerID)"
+                    )
+                    try recordPair(txID: txID, debitAccount: bankID, creditAccount: account, amount: startingBalanceMinor)
                 }
             }
 
@@ -118,6 +120,26 @@ final class SQLiteGameRepository {
     }
 
     @discardableResult
+    func bankMovement(gameID: Int64, playerID: Int64, amountMinor: Int64, kind: BankMovementKind, description: String, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
+        guard amountMinor > 0 else { throw GameStoreError.invalidAmount }
+        return try transaction {
+            guard try queryInt("SELECT id FROM games WHERE id = ? AND status = 'active'", [.integer(gameID)]) != nil else { throw GameStoreError.noActiveGame }
+            if let existing = try transactionID(idempotencyKey: idempotencyKey) { return existing }
+            let bank = try accountID(gameID: gameID, playerID: nil)
+            let player = try accountID(gameID: gameID, playerID: playerID)
+            if kind == .receive {
+                let txID = try insertTransaction(gameID: gameID, kind: kind.rawValue, amount: amountMinor, description: description, idempotencyKey: idempotencyKey)
+                try recordPair(txID: txID, debitAccount: bank, creditAccount: player, amount: amountMinor)
+                return txID
+            }
+            try requireFunds(accountID: player, amount: amountMinor)
+            let txID = try insertTransaction(gameID: gameID, kind: kind.rawValue, amount: amountMinor, description: description, idempotencyKey: idempotencyKey)
+            try recordPair(txID: txID, debitAccount: player, creditAccount: bank, amount: amountMinor)
+            return txID
+        }
+    }
+
+    @discardableResult
     func buyProperty(gameID: Int64, playerID: Int64, propertyID: Int64, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
         try transaction {
             guard try queryInt("SELECT id FROM games WHERE id = ? AND status = 'active'", [.integer(gameID)]) != nil else { throw GameStoreError.noActiveGame }
@@ -142,10 +164,22 @@ final class SQLiteGameRepository {
 
     @discardableResult
     func payRent(gameID: Int64, payerPlayerID: Int64, propertyID: Int64, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
-        guard let details = try queryOne("SELECT p.owner_player_id, p.rent_minor, p.name FROM properties p WHERE p.id = ? AND p.game_id = ?", [.integer(propertyID), .integer(gameID)], map: { row in
-            (sqlite3_column_type(row, 0) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 0), sqlite3_column_int64(row, 1), text(row, 2))
-        }), let ownerID = details.0 else { throw GameStoreError.propertyNotOwned }
-        return try performTransfer(gameID: gameID, fromPlayerID: payerPlayerID, toPlayerID: ownerID, amountMinor: details.1, kind: "rent", description: "Aluguel: \(details.2)", propertyID: propertyID, idempotencyKey: idempotencyKey)
+        try transaction {
+            guard let details = try queryOne("SELECT p.owner_player_id, p.rent_minor, p.name FROM properties p WHERE p.id = ? AND p.game_id = ?", [.integer(propertyID), .integer(gameID)], map: { row in
+                (sqlite3_column_type(row, 0) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 0), sqlite3_column_int64(row, 1), text(row, 2))
+            }), let ownerID = details.0 else { throw GameStoreError.propertyNotOwned }
+            guard details.1 > 0 else { throw GameStoreError.invalidAmount }
+            return try transferInsideTransaction(
+                gameID: gameID,
+                fromPlayerID: payerPlayerID,
+                toPlayerID: ownerID,
+                amountMinor: details.1,
+                kind: "rent",
+                description: "Aluguel: \(details.2)",
+                propertyID: propertyID,
+                idempotencyKey: idempotencyKey
+            )
+        }
     }
 
     @discardableResult
@@ -199,8 +233,18 @@ final class SQLiteGameRepository {
         let properties = try query("SELECT p.id, p.name, p.purchase_price_minor, p.rent_minor, p.owner_player_id, owner.name FROM properties p LEFT JOIN players owner ON owner.id = p.owner_player_id WHERE p.game_id = ? ORDER BY p.id", [.integer(gameID)]) { row in
             GameProperty(id: sqlite3_column_int64(row, 0), name: text(row, 1), purchasePriceMinor: sqlite3_column_int64(row, 2), rentMinor: sqlite3_column_int64(row, 3), ownerPlayerID: sqlite3_column_type(row, 4) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 4), ownerName: sqlite3_column_type(row, 5) == SQLITE_NULL ? nil : text(row, 5))
         }
-        let transactions = try query("SELECT t.id, t.kind, t.amount_minor, COALESCE(src.name, 'Banco'), COALESCE(dst.name, 'Banco'), t.description, t.created_at FROM transactions t LEFT JOIN accounts srca ON srca.id = (SELECT account_id FROM transaction_entries WHERE transaction_id = t.id AND amount_minor < 0 ORDER BY id LIMIT 1) LEFT JOIN players src ON src.id = srca.player_id LEFT JOIN accounts dsta ON dsta.id = (SELECT account_id FROM transaction_entries WHERE transaction_id = t.id AND amount_minor > 0 ORDER BY id LIMIT 1) LEFT JOIN players dst ON dst.id = dsta.player_id WHERE t.game_id = ? ORDER BY t.id DESC LIMIT 50", [.integer(gameID)]) { row in
-            GameTransaction(id: sqlite3_column_int64(row, 0), kind: text(row, 1), amountMinor: sqlite3_column_int64(row, 2), fromName: text(row, 3), toName: text(row, 4), description: text(row, 5), createdAt: text(row, 6))
+        let transactions = try query("SELECT t.id, t.kind, t.amount_minor, src.id, COALESCE(src.name, 'Banco'), dst.id, COALESCE(dst.name, 'Banco'), t.description, t.created_at FROM transactions t LEFT JOIN accounts srca ON srca.id = (SELECT account_id FROM transaction_entries WHERE transaction_id = t.id AND amount_minor < 0 ORDER BY id LIMIT 1) LEFT JOIN players src ON src.id = srca.player_id LEFT JOIN accounts dsta ON dsta.id = (SELECT account_id FROM transaction_entries WHERE transaction_id = t.id AND amount_minor > 0 ORDER BY id LIMIT 1) LEFT JOIN players dst ON dst.id = dsta.player_id WHERE t.game_id = ? ORDER BY t.id DESC LIMIT 50", [.integer(gameID)]) { row in
+            GameTransaction(
+                id: sqlite3_column_int64(row, 0),
+                kind: text(row, 1),
+                amountMinor: sqlite3_column_int64(row, 2),
+                fromPlayerID: sqlite3_column_type(row, 3) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 3),
+                fromName: text(row, 4),
+                toPlayerID: sqlite3_column_type(row, 5) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 5),
+                toName: text(row, 6),
+                description: text(row, 7),
+                createdAt: text(row, 8)
+            )
         }
         let requests = try query("SELECT r.id, r.payer_player_id, payer.name, creator.name, r.amount_minor, r.description, r.status FROM payment_requests r JOIN players payer ON payer.id = r.payer_player_id JOIN players creator ON creator.id = r.creator_player_id WHERE r.game_id = ? AND r.status = 'pending' ORDER BY r.id DESC", [.integer(gameID)]) { row in
             PaymentRequest(id: sqlite3_column_int64(row, 0), payerPlayerID: sqlite3_column_int64(row, 1), payerName: text(row, 2), creatorName: text(row, 3), amountMinor: sqlite3_column_int64(row, 4), description: text(row, 5), status: text(row, 6))
@@ -506,6 +550,15 @@ final class GameStore: ObservableObject {
     func transfer(from: Int64, to: Int64, amount: Int64, description: String) {
         guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
         do { try repository.transfer(gameID: game.id, fromPlayerID: from, toPlayerID: to, amountMinor: amount, description: description); refresh() }
+        catch { errorMessage = error.localizedDescription }
+    }
+
+    func bankMovement(amount: Int64, kind: BankMovementKind, description: String) {
+        guard let game, let playerID = game.currentPlayer?.id, let repository else {
+            errorMessage = GameStoreError.noActiveGame.localizedDescription
+            return
+        }
+        do { try repository.bankMovement(gameID: game.id, playerID: playerID, amountMinor: amount, kind: kind, description: description); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 

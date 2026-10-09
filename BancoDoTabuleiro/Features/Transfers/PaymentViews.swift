@@ -5,8 +5,8 @@ struct TransferView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var fromPlayerID: Int64 = 0
     @State private var toPlayerID: Int64 = 0
-    @State private var amount = ""
-    @State private var description = ""
+    @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "150" : ""
+    @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Aluguel da Rua Verde" : ""
 
     private var players: [GamePlayer] { store.game?.players ?? [] }
 
@@ -143,6 +143,67 @@ struct ChargeView: View {
         }
         store.clearError()
         store.createCharge(creator: creatorID, payer: payerID, amount: amountMinor, description: description)
+        if store.errorMessage == nil { dismiss() }
+    }
+}
+
+struct BankOperationView: View {
+    @EnvironmentObject private var store: GameStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var kind: BankMovementKind = .receive
+    @State private var amount = ""
+    @State private var description = ""
+
+    var body: some View {
+        Form {
+            Section("Operação da partida") {
+                Picker("Movimentação", selection: $kind) {
+                    ForEach(BankMovementKind.allCases) { movement in
+                        Text(movement.label).tag(movement)
+                    }
+                }
+                HStack {
+                    Text("M$").fontWeight(.bold).foregroundStyle(Palette.forest)
+                    TextField("Valor", text: $amount)
+                        .keyboardType(.decimalPad)
+                        .accessibilityIdentifier("bank-operation-amount")
+                }
+                TextField("Motivo (ex.: passou pela casa inicial)", text: $description)
+                    .accessibilityIdentifier("bank-operation-description")
+            }
+            Section {
+                Label(kind == .receive ? "O banco creditará a conta do jogador ativo." : "O banco cobrará a conta do jogador ativo; saldo insuficiente será recusado.", systemImage: "building.columns.fill")
+                    .font(.system(.caption, design: .rounded))
+                    .foregroundStyle(Palette.muted)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(Palette.canvas)
+        .navigationTitle("Movimentação do banco")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() }.foregroundStyle(Palette.forest) }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Confirmar") { confirm() }
+                    .fontWeight(.bold)
+                    .foregroundStyle(Palette.forest)
+                    .accessibilityIdentifier("confirm-bank-operation")
+            }
+        }
+    }
+
+    private func confirm() {
+        guard let amountMinor = MoneyFormat.minorUnits(from: amount) else {
+            store.errorMessage = GameStoreError.invalidAmount.localizedDescription
+            return
+        }
+        let reason = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        store.clearError()
+        store.bankMovement(
+            amount: amountMinor,
+            kind: kind,
+            description: reason.isEmpty ? kind.label : reason
+        )
         if store.errorMessage == nil { dismiss() }
     }
 }

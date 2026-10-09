@@ -23,7 +23,9 @@ struct GameTransaction: Identifiable, Equatable {
     let id: Int64
     let kind: String
     let amountMinor: Int64
+    let fromPlayerID: Int64?
     let fromName: String
+    let toPlayerID: Int64?
     let toName: String
     let description: String
     let createdAt: String
@@ -59,6 +61,14 @@ struct NewPlayer {
     let name: String
     let colorHex: String
     let token: String
+}
+
+enum BankMovementKind: String, CaseIterable, Identifiable, Hashable {
+    case receive = "bank_credit"
+    case pay = "bank_debit"
+
+    var id: String { rawValue }
+    var label: String { self == .receive ? "Receber do banco" : "Pagar ao banco" }
 }
 
 enum GameStoreError: LocalizedError, Equatable {

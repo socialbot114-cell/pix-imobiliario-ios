@@ -21,7 +21,7 @@ struct StatementView: View {
                     if let game = store.game, !game.transactions.isEmpty {
                         VStack(spacing: 0) {
                             ForEach(game.transactions) { transaction in
-                                TransactionRow(transaction: transaction)
+                                TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 10)
                             }

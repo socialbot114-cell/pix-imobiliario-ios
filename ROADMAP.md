@@ -23,7 +23,7 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | Implementado; execução XCTest pendente |
 | 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Primeira versão implementada; revisão visual pendente |
 | 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Primeira versão implementada; execução XCTest pendente |
-| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ | Propriedade e visual 3D integrados | App/fallback e script Blender criados; export precisa validar no Actions |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ | Propriedade e visual 3D integrados | `.blend`, preview e USDZ gerados/inspecionados localmente; carregar no iPhone continua pendente |
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros e estados vazios | MVP P0 funcional e polido | Planejada |
 | 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | Planejada |
 | 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Planejada |
@@ -37,7 +37,7 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 2. Configurar nome, 2–6 jogadores, saldo inicial e moeda virtual.
 3. Distribuir o saldo inicial uma única vez.
 4. Consultar saldo, jogadores e extrato.
-5. Fazer transferências virtuais com revisão antes da confirmação.
+5. Fazer transferências virtuais com revisão antes da confirmação e registrar créditos/pagamentos ao banco.
 6. Criar cobranças e registrar o pagamento de aluguel.
 7. Cadastrar propriedades genéricas, comprar imóvel disponível e manter titularidade histórica.
 8. Encerrar uma partida e consultar resumo financeiro.
@@ -101,6 +101,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 | 2026-10-09 | 0 → 1 | Roadmap criado; confirmados hot-seat, SQLite local, Blender e CI iOS | Pasta-alvo continha apenas a imagem de referência; Xcode/Swift/Blender não estão instalados neste Linux; GitHub CLI autenticado | Criar app, testes e workflow macOS; preparar execução remota |
 | 2026-10-09 | Rodada 1 · base, dados e telas P0 | Criados Xcode project/scheme, app SwiftUI, tema premium, painel, criação de partida, seleção persistida do jogador ativo, transferências, cobranças, imóveis, extrato e tabuleiro SceneKit com fallback | Script Blender passou `ast.parse`; schema e migração v1→v2 executados em SQLite em memória; YAML do Actions válido. Repo privado criado e código enviado. Run [37949315535](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37949315535) não iniciou jobs: annotation do GitHub informa pagamento/spending limit. Nenhum print ou build disponível; Xcode/Swift também não existem neste host. | Resolver billing do GitHub Actions; repetir o run, analisar logs/prints e corrigir o primeiro erro de build/teste |
 | 2026-10-09 | Rodada 2 · revisão local e integridade | Adicionada seleção persistente do jogador ativo; operações bloqueadas após encerrar; retry de cobrança paga retorna a operação original; XCTest cobre saldo do livro, idempotência e retomada de jogador; refinados identificadores de UI | Simulação SQLite em memória validou migrações v1→v2, saldo/lançamentos balanceados, seleção ativa e cobrança; Blender Python AST, YAML Actions e referências/caminhos do Xcode project passaram. Repo atualizado localmente; Actions segue bloqueado por billing. | Enviar rodada 2 ao repositório; obter build e capturas após desbloqueio de billing |
+| 2026-10-09 | Rodada 3 · operações do banco e extrato | Incluídos créditos e débitos ao banco; distribuição inicial agora gera lançamento equilibrado por jogador; extrato mostra sinal e data/hora por perspectiva; adicionado print do PIX ao workflow; gerados tabuleiro e dados no Blender 5.2.2 | Preview local revisado; USDZ importado novamente no Blender e os seis nós de peça e dados foram confirmados. AST Blender, schema/migração SQLite, saldo de abertura por jogador, índice de titularidade, YAML Actions e referências do Xcode project passaram. Sem build/print iOS: run [37949952843](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37949952843) foi bloqueado pelo billing/spending limit. | Enviar `.blend`, USDZ e preview; executar XCTest e revisar as cinco telas quando o runner voltar a iniciar |
 
 ### Registro detalhado da rodada 1
 
@@ -108,6 +109,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 - `BancoDoTabuleiro/Features/`: primeira implementação SwiftUI dos fluxos de partida, painel, PIX, cobranças, carteira de imóveis, extrato e resumo final.
 - `BancoDoTabuleiro/Features/Board/BoardView.swift`: tela 3D SceneKit, movimento visual de peças e fallback procedural se o USDZ não estiver no bundle.
 - `Scripts/generate_board_assets.py`: fonte Blender para tabuleiro, propriedades genéricas, seis peças, dados, cena `.blend`, preview e export USDZ.
+- `Blender/PIX-Board-Studio.blend`, `Blender/PIX-Board-preview.png` e `BancoDoTabuleiro/Art.scnassets/BoardScene.usdz`: primeira geração real feita e inspecionada com Blender 5.2.2 neste host.
 - `BancoDoTabuleiroTests/` e `BancoDoTabuleiroUITests/`: testes iniciais de saldo, idempotência, fundos insuficientes, compra/aluguel, cobrança, encerramento e fluxos visuais.
 - `.github/workflows/ios-visual-review.yml`: geração Blender, build, XCTest, capturas do simulador e upload de artefatos no runner macOS.
 - **Bloqueio externo:** Actions não iniciou os steps devido ao billing/spending limit da conta. O artefato `PIX-prints-iphone` não foi produzido; nenhuma tela foi marcada como aprovada sem inspeção visual real.

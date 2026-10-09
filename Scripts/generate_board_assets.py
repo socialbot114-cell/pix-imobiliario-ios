@@ -109,6 +109,7 @@ def make_board() -> None:
     brick = material("Terracotta accent", (0.58, 0.19, 0.13, 1), roughness=0.36)
     sage = material("Sage green accent", (0.39, 0.57, 0.37, 1), roughness=0.44)
     blue = material("Slate blue accent", (0.23, 0.39, 0.52, 1), roughness=0.38)
+    print_ink = material("Board space lettering", (0.08, 0.15, 0.12, 1), roughness=0.5)
 
     beveled_cube("Board_Walnut_Base", (0, 0, -0.05), (4.55, 4.55, 0.30), walnut, 0.10)
     beveled_cube("Board_Felt_Inlay", (0, 0, 0.12), (4.20, 4.20, 0.10), felt, 0.07)
@@ -125,6 +126,21 @@ def make_board() -> None:
             0.035,
         )
         tile["space_index"] = index
+        label_size = 0.09 if index == 0 else 0.15
+        label_text = "INICIO" if index == 0 else f"{index:02d}"
+        edge_rotation = (0, math.pi / 2, math.pi, -math.pi / 2)[index // 5]
+        bpy.ops.object.text_add(location=(point.x, point.y, 0.30))
+        label = bpy.context.object
+        label.name = f"SpaceLabel_{index:02d}"
+        label.data.body = label_text
+        label.data.align_x = "CENTER"
+        label.data.align_y = "CENTER"
+        label.data.size = label_size
+        label.data.extrude = 0.001
+        label.data.materials.append(print_ink)
+        label.rotation_euler.z = edge_rotation
+        bpy.ops.object.convert(target="MESH")
+        bpy.context.object.name = f"SpaceLabel_{index:02d}"
 
     # Small original town hall and abstract city blocks; no protected board art.
     city_white = material("Town hall limestone", (0.88, 0.79, 0.59, 1), roughness=0.42)
@@ -156,9 +172,25 @@ def make_board() -> None:
         make_token(index, color)
 
     die_mat = material("Ivory dice", (0.96, 0.91, 0.78, 1), roughness=0.22)
-    for index, x in enumerate((-0.25, 0.25), 1):
-        die = beveled_cube(f"Die_{index}", (x, 0.0, 0.31), (0.34, 0.34, 0.34), die_mat, 0.055)
-        die.rotation_euler = (0.38, -0.34, 0.26 * index)
+    pip_mat = material("Dice pip enamel", (0.055, 0.075, 0.063, 1), roughness=0.28)
+    pip_layouts = {
+        1: [(0, 0)],
+        2: [(-0.075, -0.075), (0.075, 0.075)],
+        3: [(-0.075, -0.075), (0, 0), (0.075, 0.075)],
+        4: [(-0.075, -0.075), (0.075, -0.075), (-0.075, 0.075), (0.075, 0.075)],
+        5: [(-0.075, -0.075), (0.075, -0.075), (0, 0), (-0.075, 0.075), (0.075, 0.075)],
+        6: [(-0.075, -0.075), (0, -0.075), (0.075, -0.075), (-0.075, 0.075), (0, 0.075), (0.075, 0.075)],
+    }
+    for index, (x, value) in enumerate(((-0.25, 5), (0.25, 2)), 1):
+        die = beveled_cube(f"Die_{index}", (x, -0.86, 0.40), (0.34, 0.34, 0.34), die_mat, 0.055)
+        for pip_index, (pip_x, pip_y) in enumerate(pip_layouts[value], 1):
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=20, ring_count=12, radius=0.026, location=(0, 0, 0))
+            pip = bpy.context.object
+            pip.name = f"Die_{index}_Pip_{pip_index:02d}"
+            pip.data.materials.append(pip_mat)
+            pip.parent = die
+            pip.location = (pip_x, pip_y, 0.174)
+        die.rotation_euler = (0.28, -0.22, 0.18 * index)
 
 
 def setup_camera_and_lights() -> None:
@@ -197,7 +229,7 @@ def export_assets(output_dir: str) -> None:
     blender_dir = os.path.join(project_root, "Blender")
     os.makedirs(blender_dir, exist_ok=True)
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 1280
     scene.render.resolution_percentage = 70

@@ -29,10 +29,11 @@ final class SQLiteGameRepositoryTests: XCTestCase {
 
     func testStartingBalanceAndLedgerAreCreatedTogether() throws {
         XCTAssertEqual(game.players.map(\.balanceMinor), [1_000_00, 1_000_00])
-        XCTAssertEqual(game.transactions.count, 1)
-        XCTAssertEqual(game.transactions[0].kind, "initial")
-        XCTAssertEqual(game.transactions[0].amountMinor, 2_000_00)
-        XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: game.transactions[0].id), 0)
+        XCTAssertEqual(game.transactions.count, 2)
+        XCTAssertTrue(game.transactions.allSatisfy { $0.kind == "initial" && $0.amountMinor == 1_000_00 })
+        for transaction in game.transactions {
+            XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: transaction.id), 0)
+        }
     }
 
     func testTransferUpdatesBothPlayersAndSameIdempotencyKeyDoesNotDuplicate() throws {
@@ -79,7 +80,7 @@ final class SQLiteGameRepositoryTests: XCTestCase {
 
         let result = try repository.snapshot(gameID: game.id)
         XCTAssertEqual(result.players.map(\.balanceMinor), [1_000_00, 1_000_00])
-        XCTAssertEqual(result.transactions.count, 1)
+        XCTAssertEqual(result.transactions.filter { $0.kind == "initial" }.count, 2)
     }
 
     func testPropertyPurchaseIsAtomicAndRentUsesPropertyOwner() throws {
@@ -95,8 +96,10 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         XCTAssertEqual(purchased.ownerPlayerID, buyer.id)
         XCTAssertEqual(afterPurchase.players.first?.balanceMinor, 780_00)
 
-        _ = try repository.payRent(gameID: game.id, payerPlayerID: payer.id, propertyID: property.id, idempotencyKey: "rent-ipê")
+        let rent = try repository.payRent(gameID: game.id, payerPlayerID: payer.id, propertyID: property.id, idempotencyKey: "rent-ipê")
+        let repeatedRent = try repository.payRent(gameID: game.id, payerPlayerID: payer.id, propertyID: property.id, idempotencyKey: "rent-ipê")
         let afterRent = try repository.snapshot(gameID: game.id)
+        XCTAssertEqual(rent, repeatedRent)
         XCTAssertEqual(afterRent.players.first?.balanceMinor, 1_000_00 + property.rentMinor - property.purchasePriceMinor)
         XCTAssertEqual(afterRent.players.last?.balanceMinor, 1_000_00 - property.rentMinor)
         XCTAssertTrue(afterRent.transactions.contains(where: { $0.kind == "rent" && $0.description.contains(property.name) }))
@@ -158,7 +161,7 @@ final class SQLiteGameRepositoryTests: XCTestCase {
 
         let result = try repository.snapshot(gameID: game.id)
         XCTAssertEqual(result.players.map(\.balanceMinor), [1_000_00, 1_000_00])
-        XCTAssertEqual(result.transactions.count, 1)
+        XCTAssertEqual(result.transactions.filter { $0.kind == "initial" }.count, 2)
     }
 
     func testActivePlayerChoicePersistsAcrossRepositoryReopen() throws {
@@ -169,5 +172,50 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         let restored = try XCTUnwrap(reopened.latestGame())
         XCTAssertEqual(restored.activePlayerID, selected.id)
         XCTAssertEqual(restored.currentPlayer?.name, selected.name)
+    }
+
+    func testBankCreditsAndDebitsUseTheSameBalancedLedger() throws {
+        let player = try XCTUnwrap(game.currentPlayer)
+        let credit = try repository.bankMovement(
+            gameID: game.id,
+            playerID: player.id,
+            amountMinor: 50_00,
+            kind: .receive,
+            description: "Passou pela casa inicial",
+            idempotencyKey: "start-bonus"
+        )
+        let repeatedCredit = try repository.bankMovement(
+            gameID: game.id,
+            playerID: player.id,
+            amountMinor: 50_00,
+            kind: .receive,
+            description: "Passou pela casa inicial",
+            idempotencyKey: "start-bonus"
+        )
+        XCTAssertEqual(credit, repeatedCredit)
+        XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: credit), 0)
+        XCTAssertEqual(try repository.snapshot(gameID: game.id).currentPlayer?.balanceMinor, 1_050_00)
+
+        let debit = try repository.bankMovement(
+            gameID: game.id,
+            playerID: player.id,
+            amountMinor: 25_00,
+            kind: .pay,
+            description: "Taxa da partida",
+            idempotencyKey: "game-fee"
+        )
+        XCTAssertEqual(try repository.transactionEntriesBalance(transactionID: debit), 0)
+        XCTAssertEqual(try repository.snapshot(gameID: game.id).currentPlayer?.balanceMinor, 1_025_00)
+
+        XCTAssertThrowsError(try repository.bankMovement(
+            gameID: game.id,
+            playerID: player.id,
+            amountMinor: 2_000_00,
+            kind: .pay,
+            description: "Taxa acima do saldo",
+            idempotencyKey: "too-large-fee"
+        )) { error in
+            XCTAssertEqual(error as? GameStoreError, .insufficientFunds)
+        }
     }
 }

@@ -18,7 +18,7 @@ final class BankFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
         XCTAssertTrue(app.staticTexts["M$ 2.450,00"].waitForExistence(timeout: 4))
-        app.buttons["home-action-PIX interno"].tap()
+        app.buttons["home-action-PIX"].tap()
         XCTAssertTrue(app.navigationBars["PIX Imobiliário"].waitForExistence(timeout: 4))
         let amountField = app.textFields["transfer-amount-field"]
         XCTAssertTrue(amountField.waitForExistence(timeout: 3))
@@ -28,7 +28,7 @@ final class BankFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["M$ 2.400,00"].waitForExistence(timeout: 5))
         app.tabBars.buttons["Extrato"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-3"].waitForExistence(timeout: 5))
     }
 
     func testPremiumBoardTabIsReachable() throws {
@@ -48,7 +48,7 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Rua do Ipê"].waitForExistence(timeout: 8))
         app.buttons["buy-property-1"].tap()
         app.tabBars.buttons["Extrato"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 6))
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-5"].waitForExistence(timeout: 6))
     }
 
     func testChargeWaitsForPayerThenRecordsPayment() throws {
@@ -68,5 +68,20 @@ final class BankFlowUITests: XCTestCase {
         if !payButton.isHittable { app.swipeUp() }
         payButton.tap()
         XCTAssertTrue(app.staticTexts["M$ 2.490,00"].waitForExistence(timeout: 5))
+    }
+
+    func testBankCanCreditStartingSquareIncome() throws {
+        app.buttons["create-game-button"].tap()
+        app.buttons["confirm-create-game"].tap()
+        XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
+        app.buttons["home-action-Banco"].tap()
+        XCTAssertTrue(app.navigationBars["Movimentação do banco"].waitForExistence(timeout: 4))
+        let amountField = app.textFields["bank-operation-amount"]
+        amountField.tap()
+        amountField.typeText("200")
+        app.textFields["bank-operation-description"].tap()
+        app.textFields["bank-operation-description"].typeText("Passou pela casa inicial")
+        app.buttons["confirm-bank-operation"].tap()
+        XCTAssertTrue(app.staticTexts["M$ 2.650,00"].waitForExistence(timeout: 5))
     }
 }
