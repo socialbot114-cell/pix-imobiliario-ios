@@ -10,6 +10,7 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Registrar créditos e pagamentos ao banco virtual (por exemplo, renda de passagem ou taxa da partida).
 - Consultar painel, extrato, carteira de imóveis e resumo visual do tabuleiro.
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.
+- Posição visual de cada peça salva localmente e retomada ao reabrir a partida.
 - Alternar o jogador ativo tocando no avatar; transferências, compras e cobranças usam esse contexto inicial.
 
 O MVP é hot-seat: participantes usam o mesmo iPhone. O código local identifica a sessão, mas não conecta outros aparelhos. Multiplayer entre dispositivos exige backend e fica fora desta fase.

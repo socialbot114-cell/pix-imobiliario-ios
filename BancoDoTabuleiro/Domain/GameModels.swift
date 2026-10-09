@@ -5,6 +5,7 @@ struct GamePlayer: Identifiable, Equatable {
     let name: String
     let colorHex: String
     let token: String
+    let boardPosition: Int
     let balanceMinor: Int64
 }
 

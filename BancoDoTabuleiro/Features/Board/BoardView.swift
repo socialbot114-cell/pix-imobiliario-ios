@@ -32,7 +32,7 @@ struct BoardView: View {
                         .pickerStyle(.segmented)
                         .accessibilityIdentifier("board-player-picker")
 
-                        BoardSceneView(moveToken: rollToken, playerIndex: selectedPlayer, spacesToMove: lastRoll)
+                        BoardSceneView(moveToken: rollToken, playerIndex: selectedPlayer, playerPositions: game.players.map(\.boardPosition))
                             .frame(height: 340)
                             .clipShape(RoundedRectangle(cornerRadius: 26))
                             .overlay(RoundedRectangle(cornerRadius: 26).stroke(Palette.gold.opacity(0.75), lineWidth: 1))
@@ -60,11 +60,17 @@ struct BoardView: View {
                         .padding(15)
                         .background(Palette.card, in: RoundedRectangle(cornerRadius: 20))
 
-                        Button(action: rollDice) {
-                            Label(lastRoll == 0 ? "Lançar dados" : "Lançar novamente", systemImage: "die.face.5.fill")
+                        if game.status == "active" {
+                            Button(action: rollDice) {
+                                Label(lastRoll == 0 ? "Lançar dados" : "Lançar novamente", systemImage: "die.face.5.fill")
+                            }
+                            .buttonStyle(PrimaryActionStyle())
+                            .accessibilityIdentifier("roll-board-dice")
+                        } else {
+                            Label("Partida encerrada", systemImage: "flag.checkered")
+                                .font(.system(.headline, design: .rounded))
+                                .foregroundStyle(Palette.muted)
                         }
-                        .buttonStyle(PrimaryActionStyle())
-                        .accessibilityIdentifier("roll-board-dice")
 
                         Label("A posição é uma anotação visual local e não altera saldos, aluguéis ou regras.", systemImage: "info.circle")
                             .font(.system(.caption2, design: .rounded))
@@ -94,8 +100,12 @@ struct BoardView: View {
     }
 
     private func rollDice() {
+        guard let game = store.game,
+              game.status == "active",
+              game.players.indices.contains(selectedPlayer) else { return }
         var generator = SystemRandomNumberGenerator()
         lastRoll = Int.random(in: 1...6, using: &generator) + Int.random(in: 1...6, using: &generator)
+        store.advanceBoardPosition(playerID: game.players[selectedPlayer].id, spaces: lastRoll)
         rollToken += 1
     }
 }
@@ -103,7 +113,7 @@ struct BoardView: View {
 private struct BoardSceneView: UIViewRepresentable {
     let moveToken: Int
     let playerIndex: Int
-    let spacesToMove: Int
+    let playerPositions: [Int]
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -122,27 +132,45 @@ private struct BoardSceneView: UIViewRepresentable {
 
     func updateUIView(_ view: SCNView, context: Context) {
         context.coordinator.view = view
-        context.coordinator.moveIfNeeded(token: moveToken, playerIndex: playerIndex, steps: spacesToMove)
+        context.coordinator.synchronize(token: moveToken, playerIndex: playerIndex, positions: playerPositions)
     }
 
     final class Coordinator {
         weak var view: SCNView?
         private var lastMoveToken = 0
-        private var positions = Array(repeating: 0, count: 6)
+        private var positions = [0, 2, 4, 6, 8, 10]
+        private var hasInitializedPositions = false
 
-        func moveIfNeeded(token: Int, playerIndex: Int, steps: Int) {
-            guard token != lastMoveToken, token > 0, let scene = view?.scene else { return }
+        func synchronize(token: Int, playerIndex: Int, positions target: [Int]) {
+            guard let scene = view?.scene else { return }
+            let count = min(target.count, positions.count)
+            guard count > 0 else { return }
+            let isRolling = hasInitializedPositions && token != lastMoveToken && token > 0
+            let movingIndex = min(max(playerIndex, 0), count - 1)
+
+            for index in count..<positions.count {
+                scene.rootNode.childNode(withName: "Token_\(index + 1)", recursively: true)?.isHidden = true
+            }
+
+            for index in 0..<count {
+                guard let node = scene.rootNode.childNode(withName: "Token_\(index + 1)", recursively: true) else { continue }
+                node.isHidden = false
+                let destination = Self.spacePosition(target[index] % 20)
+                if isRolling && index == movingIndex {
+                    let move = SCNAction.move(to: SCNVector3(destination.x, 0.24, destination.y), duration: 0.82)
+                    move.timingMode = .easeInEaseOut
+                    let turn = SCNAction.rotateBy(x: .pi * 2, y: .pi * 2, z: .pi * 2, duration: 0.82)
+                    node.removeAllActions()
+                    node.runAction(.group([move, turn]))
+                } else if !hasInitializedPositions || positions[index] != target[index] {
+                    node.removeAllActions()
+                    node.position = SCNVector3(destination.x, 0.24, destination.y)
+                }
+            }
+
+            for index in 0..<count { positions[index] = target[index] % 20 }
             lastMoveToken = token
-            let index = min(max(playerIndex, 0), positions.count - 1)
-            positions[index] = (positions[index] + steps) % 20
-            let nodeName = "Token_\(index + 1)"
-            guard let node = scene.rootNode.childNode(withName: nodeName, recursively: true) else { return }
-            let point = Self.spacePosition(positions[index])
-            let move = SCNAction.move(to: SCNVector3(point.x, 0.24, point.y), duration: 0.82)
-            move.timingMode = .easeInEaseOut
-            let turn = SCNAction.rotateBy(x: .pi * 2, y: .pi * 2, z: .pi * 2, duration: 0.82)
-            node.removeAllActions()
-            node.runAction(.group([move, turn]))
+            hasInitializedPositions = true
         }
 
         static func makeScene() -> SCNScene {

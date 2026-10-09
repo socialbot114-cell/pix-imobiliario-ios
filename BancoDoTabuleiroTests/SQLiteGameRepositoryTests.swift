@@ -218,4 +218,15 @@ final class SQLiteGameRepositoryTests: XCTestCase {
             XCTAssertEqual(error as? GameStoreError, .insufficientFunds)
         }
     }
+
+    func testBoardPositionAdvancesWrapsAndPersists() throws {
+        let player = try XCTUnwrap(game.players.first)
+        XCTAssertEqual(player.boardPosition, 0)
+        XCTAssertEqual(try repository.advanceBoardPosition(gameID: game.id, playerID: player.id, spaces: 12), 12)
+        XCTAssertEqual(try repository.advanceBoardPosition(gameID: game.id, playerID: player.id, spaces: 10), 2)
+
+        let reopened = try SQLiteGameRepository(databaseURL: databaseURL)
+        let restored = try XCTUnwrap(reopened.latestGame())
+        XCTAssertEqual(restored.players.first?.boardPosition, 2)
+    }
 }

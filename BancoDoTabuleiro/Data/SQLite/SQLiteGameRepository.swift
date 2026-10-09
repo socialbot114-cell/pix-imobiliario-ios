@@ -52,8 +52,8 @@ final class SQLiteGameRepository {
             var createdPlayerIDs: [Int64] = []
             for (index, player) in players.enumerated() {
                 let name = player.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                try execute("INSERT INTO players(game_id, name, color_hex, token, seat_order) VALUES(?, ?, ?, ?, ?)", [
-                    .integer(gameID), .text(name), .text(player.colorHex), .text(player.token), .integer(Int64(index))
+                try execute("INSERT INTO players(game_id, name, color_hex, token, seat_order, board_position) VALUES(?, ?, ?, ?, ?, ?)", [
+                    .integer(gameID), .text(name), .text(player.colorHex), .text(player.token), .integer(Int64(index)), .integer(Int64(index * 2))
                 ])
                 let playerID = sqlite3_last_insert_rowid(connection)
                 createdPlayerIDs.append(playerID)
@@ -111,6 +111,20 @@ final class SQLiteGameRepository {
                 throw GameStoreError.noActiveGame
             }
             try execute("UPDATE games SET active_player_id = ? WHERE id = ?", [.integer(playerID), .integer(gameID)])
+        }
+    }
+
+    @discardableResult
+    func advanceBoardPosition(gameID: Int64, playerID: Int64, spaces: Int) throws -> Int {
+        guard spaces > 0 else { throw GameStoreError.invalidAmount }
+        return try transaction {
+            guard try queryInt("SELECT id FROM games WHERE id = ? AND status = 'active'", [.integer(gameID)]) != nil,
+                  let current = try queryInt("SELECT board_position FROM players WHERE id = ? AND game_id = ?", [.integer(playerID), .integer(gameID)]) else {
+                throw GameStoreError.noActiveGame
+            }
+            let next = Int((current + Int64(spaces)) % 20)
+            try execute("UPDATE players SET board_position = ? WHERE id = ? AND game_id = ?", [.integer(Int64(next)), .integer(playerID), .integer(gameID)])
+            return next
         }
     }
 
@@ -227,8 +241,8 @@ final class SQLiteGameRepository {
         }) else {
             throw GameStoreError.noActiveGame
         }
-        let players = try query("SELECT id, name, color_hex, token, (SELECT balance_minor FROM accounts WHERE accounts.player_id = players.id) FROM players WHERE game_id = ? ORDER BY seat_order", [.integer(gameID)]) { row in
-            GamePlayer(id: sqlite3_column_int64(row, 0), name: text(row, 1), colorHex: text(row, 2), token: text(row, 3), balanceMinor: sqlite3_column_int64(row, 4))
+        let players = try query("SELECT id, name, color_hex, token, board_position, (SELECT balance_minor FROM accounts WHERE accounts.player_id = players.id) FROM players WHERE game_id = ? ORDER BY seat_order", [.integer(gameID)]) { row in
+            GamePlayer(id: sqlite3_column_int64(row, 0), name: text(row, 1), colorHex: text(row, 2), token: text(row, 3), boardPosition: Int(sqlite3_column_int64(row, 4)), balanceMinor: sqlite3_column_int64(row, 5))
         }
         let properties = try query("SELECT p.id, p.name, p.purchase_price_minor, p.rent_minor, p.owner_player_id, owner.name FROM properties p LEFT JOIN players owner ON owner.id = p.owner_player_id WHERE p.game_id = ? ORDER BY p.id", [.integer(gameID)]) { row in
             GameProperty(id: sqlite3_column_int64(row, 0), name: text(row, 1), purchasePriceMinor: sqlite3_column_int64(row, 2), rentMinor: sqlite3_column_int64(row, 3), ownerPlayerID: sqlite3_column_type(row, 4) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 4), ownerName: sqlite3_column_type(row, 5) == SQLITE_NULL ? nil : text(row, 5))
@@ -407,6 +421,13 @@ final class SQLiteGameRepository {
                 try execute("INSERT INTO schema_migrations(version, applied_at) VALUES(2, ?)", [.text(Self.now())])
             }
         }
+        if (try queryInt("SELECT MAX(version) FROM schema_migrations") ?? 0) < 3 {
+            try transaction {
+                try execute("ALTER TABLE players ADD COLUMN board_position INTEGER NOT NULL DEFAULT 0")
+                try execute("UPDATE players SET board_position = seat_order * 2")
+                try execute("INSERT INTO schema_migrations(version, applied_at) VALUES(3, ?)", [.text(Self.now())])
+            }
+        }
     }
 
     private enum SQLiteValue {
@@ -577,6 +598,12 @@ final class GameStore: ObservableObject {
     func selectActivePlayer(_ player: GamePlayer) {
         guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
         do { try repository.selectActivePlayer(gameID: game.id, playerID: player.id); refresh() }
+        catch { errorMessage = error.localizedDescription }
+    }
+
+    func advanceBoardPosition(playerID: Int64, spaces: Int) {
+        guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
+        do { try repository.advanceBoardPosition(gameID: game.id, playerID: playerID, spaces: spaces); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 
