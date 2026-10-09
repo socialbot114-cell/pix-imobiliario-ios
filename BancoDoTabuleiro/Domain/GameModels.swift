@@ -42,6 +42,14 @@ struct PaymentRequest: Identifiable, Equatable {
     let status: String
 }
 
+private struct PlayerValuation {
+    let seat: Int
+    let player: GamePlayer
+    let propertyValueMinor: Int64
+    let propertyCount: Int
+    let netWorthMinor: Int64
+}
+
 struct GameSnapshot: Equatable {
     let id: Int64
     let name: String
@@ -58,36 +66,48 @@ struct GameSnapshot: Equatable {
     }
 
     var standings: [PlayerStanding] {
-        let values = players.enumerated().map { seat, player in
-            let propertyValue = properties
-                .filter { $0.ownerPlayerID == player.id }
-                .reduce(Int64(0)) { $0 + $1.purchasePriceMinor }
-            return (
+        var valuations: [PlayerValuation] = []
+        for (seat, player) in players.enumerated() {
+            let ownedProperties = properties.filter { $0.ownerPlayerID == player.id }
+            let propertyValueMinor = ownedProperties.reduce(Int64(0)) { total, property in
+                total + property.purchasePriceMinor
+            }
+            let valuation = PlayerValuation(
                 seat: seat,
                 player: player,
-                propertyValue: propertyValue,
-                propertyCount: properties.filter { $0.ownerPlayerID == player.id }.count,
-                netWorth: player.balanceMinor + propertyValue
+                propertyValueMinor: propertyValueMinor,
+                propertyCount: ownedProperties.count,
+                netWorthMinor: player.balanceMinor + propertyValueMinor
             )
-        }
-        .sorted { lhs, rhs in
-            lhs.netWorth == rhs.netWorth ? lhs.seat < rhs.seat : lhs.netWorth > rhs.netWorth
+            valuations.append(valuation)
         }
 
-        var previousNetWorth: Int64?
+        valuations.sort { lhs, rhs in
+            if lhs.netWorthMinor != rhs.netWorthMinor {
+                return lhs.netWorthMinor > rhs.netWorthMinor
+            }
+            return lhs.seat < rhs.seat
+        }
+
+        var result: [PlayerStanding] = []
+        var previousNetWorthMinor: Int64?
         var currentRank = 0
-        return values.enumerated().map { index, value in
-            if previousNetWorth != value.netWorth { currentRank = index + 1 }
-            previousNetWorth = value.netWorth
-            return PlayerStanding(
-                player: value.player,
-                cashBalanceMinor: value.player.balanceMinor,
-                propertyValueMinor: value.propertyValue,
-                propertyCount: value.propertyCount,
-                netWorthMinor: value.netWorth,
+        for (index, valuation) in valuations.enumerated() {
+            if previousNetWorthMinor != valuation.netWorthMinor {
+                currentRank = index + 1
+            }
+            previousNetWorthMinor = valuation.netWorthMinor
+            let standing = PlayerStanding(
+                player: valuation.player,
+                cashBalanceMinor: valuation.player.balanceMinor,
+                propertyValueMinor: valuation.propertyValueMinor,
+                propertyCount: valuation.propertyCount,
+                netWorthMinor: valuation.netWorthMinor,
                 rank: currentRank
             )
+            result.append(standing)
         }
+        return result
     }
 }
 
