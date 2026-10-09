@@ -19,14 +19,14 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | Semana | Marco | Entregas | Saída esperada | Estado |
 |---|---|---|---|---|
 | 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
-| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 379923 |
-| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 11 XCTest passaram no run 379923 |
-| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 9 testes de UI passaram no run 379923 |
-| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 379923 |
-| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 379923 |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 379942 |
+| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 11 XCTest passaram no run 379942 |
+| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 9 testes de UI passaram no run 379942 |
+| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 379942 |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 379942 |
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros, privacidade local, apagar dados e estados vazios | MVP P0 funcional e polido | Resumo, disclosure local, exclusão, Reduzir Movimento, ícone e Dynamic Type implementados; auditoria VoiceOver manual pendente |
 | 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | 11 unit tests + 8 UI tests passaram no run 379686 |
-| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Nove prints revistos; run 379923 verde; `.app` de simulador publicado como artifact |
+| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Nove prints revistos; run 379942 verde; `.app` de simulador publicado como artifact |
 | 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | Build e 11+9 testes verdes; falta auditoria VoiceOver em aparelho e decisão sobre assinatura/TestFlight |
 
 > As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
@@ -117,7 +117,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 | 2026-10-09 | Rodada 14 · revisão visual acessível | Workflow captura também Privacidade e Dynamic Type XXXL | A captura XXXL revelou atalhos, contagem de jogadores e nomes comprimidos; painel passou a grade 2×2 com saldo empilhado. O UI test percorre a página até localizar o atalho. | Revalidado em run posterior; seguir estabilização final |
 | 2026-10-09 | Rodada 15 · validação de acessibilidade | Corrigido o UI test para percorrer o painel em Dynamic Type grande; captura e artifact de prints mantidos | Run [37979988213](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37979988213) passou com 11 unit tests, 9 UI tests e nove capturas. | Publicar o build de simulador e fechar checklist |
 | 2026-10-09 | Rodada 16 · entrega de simulador | Workflow publica `PIX-app-ios-simulator` junto com logs, XCTest e capturas | Run [37992330567](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37992330567) verde; 11 unit tests + 9 UI tests; app não assinado disponível como artifact. | Auditoria manual em aparelho e assinatura/TestFlight são dependências de lançamento |
-| 2026-10-09 | Rodada 17 · ajuste final de texto ampliado | Revisão dos nove prints encontrou tagline truncada no topo em Dynamic Type XXXL; texto agora pode usar duas linhas em tamanhos de acessibilidade | Correção local em `HomeView.swift`; ainda pendente de build, captura e revisão no próximo run. | Confirmar tagline inteira e garantir que layout regular não mudou |
+| 2026-10-09 | Rodada 17 · ajuste final de texto ampliado | Revisão dos nove prints encontrou tagline truncada no topo em Dynamic Type XXXL; texto passou a usar duas linhas em tamanhos de acessibilidade | Run [37994275194](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37994275194) passou: 11 unit tests + 9 UI tests. Print XXXL revisado; tagline completa e layout regular preservado. | Auditoria manual VoiceOver em aparelho; preparar assinatura se a distribuição TestFlight for desejada |
 
 ### Registro detalhado da rodada 1
 
