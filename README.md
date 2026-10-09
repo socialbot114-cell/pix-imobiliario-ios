@@ -34,7 +34,7 @@ xcodebuild -project BancoDoTabuleiro.xcodeproj -scheme BancoDoTabuleiro \
   -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO test
 ```
 
-O GitHub Actions executa o build/teste no runner macOS, gera screenshots das telas principais e publica logs e resultados XCTest como artefatos.
+O GitHub Actions executa o build/teste no runner macOS, gera screenshots das telas principais e publica como artefatos o app de simulador sem assinatura, logs e resultados XCTest. O `.app` é voltado a simulador; instalação em iPhone físico/TestFlight exige assinatura Apple.
 
 ## Blender
 

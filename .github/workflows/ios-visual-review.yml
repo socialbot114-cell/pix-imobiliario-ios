@@ -159,6 +159,15 @@ jobs:
         if: always() && steps.build.outcome == 'success'
         run: swift Scripts/make_contact_sheet.swift visual-review/screenshots visual-review/PIX-contact-sheet.png
 
+      - name: Upload unsigned simulator app
+        if: always() && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIX-app-ios-simulator
+          path: DerivedData/Build/Products/Debug-iphonesimulator/BancoDoTabuleiro.app
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload screenshots and contact sheet
         if: always()
         id: upload-prints
@@ -192,5 +201,6 @@ jobs:
           echo "- Blender assets: ${{ needs.blender-assets.result }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Build: ${{ steps.build.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- XCTest: ${{ steps.xcode-tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Unsigned simulator app: artifact `PIX-app-ios-simulator`' >> "$GITHUB_STEP_SUMMARY"
           echo '- Prints e montagem: artifact `PIX-prints-iphone`' >> "$GITHUB_STEP_SUMMARY"
           echo '- Logs e xcresult: artifact `PIX-build-test-results`' >> "$GITHUB_STEP_SUMMARY"

@@ -27,7 +27,7 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros, privacidade local, apagar dados e estados vazios | MVP P0 funcional e polido | Resumo, disclosure local, exclusão, Reduzir Movimento, ícone e Dynamic Type implementados; auditoria VoiceOver manual pendente |
 | 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | 11 unit tests + 8 UI tests passaram no run 379686 |
 | 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Sete prints revistos; próxima rodada acrescenta Privacidade e Dynamic Type XXXL |
-| 9 | Estabilização | QA final, documentação, CI verde e pacote para teste | Build candidato a teste em aparelho | Em andamento: auditoria VoiceOver em aparelho, revisão final do ícone e decisão de distribuição |
+| 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | CI/prints verdes; próximo run também publicará `.app` de simulador sem assinatura. TestFlight/dispositivo físico exige assinatura Apple |
 
 > As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
 
@@ -73,6 +73,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 - Runner macOS com Xcode e simulador de iPhone; build sem assinatura.
 - Testes de domínio/SQLite e UI em modo previsível.
 - Artifacts por execução: screenshots individuais, contact sheet, vídeo de navegação quando disponível, logs e resultados XCTest.
+- Publicar o `.app` iOS Simulator não assinado para baixar e testar no simulador local; não é instalável em iPhone físico sem assinatura.
 - Capturas prioritárias: painel com atividade de demonstração, PIX, movimentação do banco, cobrança, imóveis, extrato e tabuleiro.
 - Pipeline de Blender separado ou etapa não bloqueante enquanto o export USDZ estiver sendo estabilizado; validar carregamento de USDZ no teste iOS quando disponível.
 - Após cada execução: registrar link/status do run, observações visuais e correção priorizada aqui.
