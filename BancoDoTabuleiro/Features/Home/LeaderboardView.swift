@@ -53,38 +53,58 @@ struct PlayerStandingRow: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let standing: PlayerStanding
     var identifierPrefix = "leaderboard-row"
+    var compact = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 10) {
+            if compact {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 11) {
+                            rankBadge
+                            playerIdentity
+                        }
+                        wealthSummary
+                    }
+                } else {
                     HStack(spacing: 11) {
                         rankBadge
                         playerIdentity
+                        Spacer(minLength: 4)
+                        wealthSummary
                     }
-                    wealthSummary
                 }
             } else {
-                HStack(spacing: 11) {
-                    rankBadge
-                    playerIdentity
-                    Spacer(minLength: 4)
-                    wealthSummary
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 11) {
+                            rankBadge
+                            playerIdentity
+                        }
+                        wealthSummary
+                    }
+                } else {
+                    HStack(spacing: 11) {
+                        rankBadge
+                        playerIdentity
+                        Spacer(minLength: 4)
+                        wealthSummary
+                    }
                 }
-            }
 
-            Rectangle().fill(Palette.line).frame(height: 1)
+                Rectangle().fill(Palette.line).frame(height: 1)
 
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 9) {
-                    metric(label: "Saldo disponível", value: standing.cashBalanceMinor, icon: "banknote.fill")
-                    metric(label: "Valor dos imóveis", value: standing.propertyValueMinor, icon: "house.fill")
-                }
-            } else {
-                HStack(alignment: .top, spacing: 14) {
-                    metric(label: "Saldo", value: standing.cashBalanceMinor, icon: "banknote.fill")
-                    Spacer(minLength: 4)
-                    metric(label: "Imóveis · \(standing.propertyCount)", value: standing.propertyValueMinor, icon: "house.fill")
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 9) {
+                        metric(label: "Saldo disponível", value: standing.cashBalanceMinor, icon: "banknote.fill")
+                        metric(label: "Valor dos imóveis", value: standing.propertyValueMinor, icon: "house.fill")
+                    }
+                } else {
+                    HStack(alignment: .top, spacing: 14) {
+                        metric(label: "Saldo", value: standing.cashBalanceMinor, icon: "banknote.fill")
+                        Spacer(minLength: 4)
+                        metric(label: "Imóveis · \(standing.propertyCount)", value: standing.propertyValueMinor, icon: "house.fill")
+                    }
                 }
             }
         }
