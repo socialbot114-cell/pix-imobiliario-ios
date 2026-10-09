@@ -17,6 +17,8 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Apagar todas as partidas e os dados locais pelo menu da partida.
 - Ícone original verde/dourado incluído no asset catalog iOS.
 
+A tela **Privacidade e dados** explica que o MVP é local, sem login/rede/analytics, e que os saldos são moeda fictícia.
+
 O MVP é hot-seat: participantes usam o mesmo iPhone. O código local identifica a sessão, mas não conecta outros aparelhos. Multiplayer entre dispositivos exige backend e fica fora desta fase.
 
 ## Abrir e testar

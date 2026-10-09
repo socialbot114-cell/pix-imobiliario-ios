@@ -131,4 +131,13 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["select-player-1"].label.contains("Ana"))
         XCTAssertTrue(app.tabBars.buttons["Extrato"].label.contains("Extrato"))
     }
+
+    func testPrivacyDisclosureExplainsLocalStorageAndVirtualCurrency() throws {
+        XCTAssertTrue(app.staticTexts["A mesa está pronta."].waitForExistence(timeout: 8))
+        app.buttons["privacy-info-button"].tap()
+
+        XCTAssertTrue(app.navigationBars["Privacidade"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["Seus dados ficam neste iPhone"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["privacy-virtual-currency"].exists)
+    }
 }

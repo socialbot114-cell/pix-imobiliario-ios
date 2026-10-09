@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, bank, charge
+    case createGame, transfer, bank, charge, privacy
     var id: String { rawValue }
 }
 
@@ -80,6 +80,7 @@ struct HomeView: View {
                 case .transfer: TransferView()
                 case .bank: BankOperationView()
                 case .charge: ChargeView()
+                case .privacy: PrivacyAndDataView()
                 }
             }
             .presentationDetents([.medium, .large])
@@ -179,6 +180,15 @@ struct HomeView: View {
             .buttonStyle(PrimaryActionStyle())
             .accessibilityIdentifier("create-game-button")
 
+            Button { sheet = .privacy } label: {
+                Label("Privacidade e dados", systemImage: "lock.shield")
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.forest)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+            }
+            .accessibilityIdentifier("privacy-info-button")
+
             Text("M$ é uma moeda fictícia da partida. Nenhum pagamento real é realizado.")
                 .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(Palette.muted)
@@ -201,6 +211,7 @@ struct HomeView: View {
                 Spacer()
                 Menu {
                     Button("Nova partida", systemImage: "plus") { sheet = .createGame }
+                    Button("Privacidade e dados", systemImage: "lock.shield") { sheet = .privacy }
                     Button("Apagar dados locais", systemImage: "trash", role: .destructive) { showDeleteConfirmation = true }
                     if game.status == "active" {
                         Button("Encerrar partida", systemImage: "flag.checkered", role: .destructive) { showFinishConfirmation = true }
@@ -431,6 +442,71 @@ struct HomeView: View {
         case "carro": return "car.fill"
         default: return "pawn.fill"
         }
+    }
+}
+
+private struct PrivacyAndDataView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle().fill(Palette.forest.opacity(0.08)).frame(width: 92, height: 92)
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 39, weight: .medium))
+                        .foregroundStyle(Palette.forest)
+                }
+                .padding(.top, 16)
+
+                Text("Privacidade e dados")
+                    .font(.system(.largeTitle, design: .serif, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+
+                PremiumCard {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Seus dados ficam neste iPhone")
+                            .font(.system(.headline, design: .rounded, weight: .bold))
+                            .foregroundStyle(Palette.forest)
+                        privacyRow("iphone", identifier: "privacy-local-storage", "Partidas, saldos e extratos são armazenados localmente em SQLite.")
+                        privacyRow("wifi.slash", identifier: "privacy-no-network", "Esta versão não usa login, sincronização em nuvem, analytics ou rede para movimentar valores.")
+                        privacyRow("banknote", identifier: "privacy-virtual-currency", "M$ é uma moeda fictícia; nenhum dinheiro real nem PIX oficial é movimentado.")
+                        privacyRow("trash", identifier: "privacy-delete-data", "Use o menu da partida para apagar todas as partidas e dados locais.")
+                    }
+                }
+
+                Text("Ao compartilhar este iPhone durante uma partida, os participantes podem ver as informações locais exibidas no app.")
+                    .font(.system(.caption, design: .rounded))
+                    .foregroundStyle(Palette.muted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+            }
+            .padding(20)
+        }
+        .background(Palette.canvas.ignoresSafeArea())
+        .navigationTitle("Privacidade")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Fechar") { dismiss() }
+                    .foregroundStyle(Palette.forest)
+            }
+        }
+    }
+
+    private func privacyRow(_ icon: String, identifier: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Palette.gold)
+                .frame(width: 24)
+            Text(text)
+                .font(.system(.subheadline, design: .rounded))
+                .foregroundStyle(Palette.ink)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(identifier)
     }
 }
 
