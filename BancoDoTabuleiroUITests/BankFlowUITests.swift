@@ -99,11 +99,11 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.staticTexts["balance-value"].exists)
         let pixButton = app.buttons["home-action-PIX"]
-        XCTAssertTrue(pixButton.waitForExistence(timeout: 5))
         for _ in 0..<5 {
-            if pixButton.isHittable { break }
+            if pixButton.exists && pixButton.isHittable { break }
             app.swipeUp()
         }
+        XCTAssertTrue(pixButton.waitForExistence(timeout: 5))
         XCTAssertTrue(pixButton.isHittable)
         XCTAssertTrue(app.tabBars.buttons["Extrato"].exists)
     }
