@@ -524,7 +524,7 @@ final class SQLiteGameRepository {
 final class GameStore: ObservableObject {
     @Published private(set) var game: GameSnapshot?
     @Published var errorMessage: String?
-    private let repository: SQLiteGameRepository?
+    private var repository: SQLiteGameRepository?
 
     init(repository: SQLiteGameRepository? = nil) {
         let arguments = ProcessInfo.processInfo.arguments

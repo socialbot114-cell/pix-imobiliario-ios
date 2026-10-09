@@ -23,6 +23,8 @@ jobs:
 
       - name: Install Blender 5.2 for USDZ export
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes libegl1
           VERSION=5.2.2
           ARCHIVE="$RUNNER_TEMP/blender-$VERSION-linux-x64.tar.xz"
           INSTALL_DIR="$RUNNER_TEMP/blender-$VERSION-linux-x64"
