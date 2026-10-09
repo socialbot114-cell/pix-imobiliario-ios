@@ -49,6 +49,7 @@ private enum HomeSheet: String, Identifiable {
 struct HomeView: View {
     @EnvironmentObject private var store: GameStore
     @Binding var selectedTab: Int
+    @ScaledMetric(relativeTo: .largeTitle) private var balanceFontSize: CGFloat = 34
     @State private var sheet: HomeSheet?
     @State private var showFinishConfirmation = false
 
@@ -230,8 +231,8 @@ struct HomeView: View {
                         .font(.system(.subheadline, design: .rounded))
                         .foregroundStyle(Palette.muted)
                 } else {
-                    ForEach(game.transactions.prefix(4)) { transaction in
-                        TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id)
+                    ForEach(game.transactions.prefix(3)) { transaction in
+                        TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id, compact: true)
                     }
                 }
             }
@@ -259,7 +260,7 @@ struct HomeView: View {
                     .foregroundStyle(Palette.card.opacity(0.68))
             }
             Text(MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .font(.system(size: balanceFontSize, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
                 .foregroundStyle(.white)
@@ -427,6 +428,7 @@ struct HomeView: View {
 struct TransactionRow: View {
     let transaction: GameTransaction
     var perspectivePlayerID: Int64? = nil
+    var compact = false
 
     private var amountLabel: String {
         let amount = MoneyFormat.string(transaction.amountMinor)
@@ -463,20 +465,20 @@ struct TransactionRow: View {
             Image(systemName: symbol)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(Palette.forest)
-                .frame(width: 38, height: 38)
+                .frame(width: compact ? 34 : 38, height: compact ? 34 : 38)
                 .background(Palette.forest.opacity(0.09), in: Circle())
             VStack(alignment: .leading, spacing: 3) {
                 Text(transaction.description)
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
-                    .lineLimit(2)
-                Text("\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
+                    .lineLimit(compact ? 1 : 2)
+                Text(compact ? "\(transaction.fromName)  →  \(transaction.toName)" : "\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(Palette.muted)
             }
             Spacer(minLength: 2)
             Text(amountLabel)
-                .font(.system(.caption, design: .rounded, weight: .bold))
+                .font(.system(compact ? .caption2 : .caption, design: .rounded, weight: .bold))
                 .foregroundStyle(amountColor)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)

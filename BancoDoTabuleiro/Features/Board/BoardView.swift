@@ -4,6 +4,7 @@ import UIKit
 
 struct BoardView: View {
     @EnvironmentObject private var store: GameStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var rollToken = 0
     @State private var lastRoll = 0
     @State private var selectedPlayer = 0
@@ -32,7 +33,12 @@ struct BoardView: View {
                         .pickerStyle(.segmented)
                         .accessibilityIdentifier("board-player-picker")
 
-                        BoardSceneView(moveToken: rollToken, playerIndex: selectedPlayer, playerPositions: game.players.map(\.boardPosition))
+                        BoardSceneView(
+                            moveToken: rollToken,
+                            playerIndex: selectedPlayer,
+                            playerPositions: game.players.map(\.boardPosition),
+                            reduceMotion: reduceMotion
+                        )
                             .frame(height: 340)
                             .clipShape(RoundedRectangle(cornerRadius: 26))
                             .overlay(RoundedRectangle(cornerRadius: 26).stroke(Palette.gold.opacity(0.75), lineWidth: 1))
@@ -114,6 +120,7 @@ private struct BoardSceneView: UIViewRepresentable {
     let moveToken: Int
     let playerIndex: Int
     let playerPositions: [Int]
+    let reduceMotion: Bool
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -122,7 +129,7 @@ private struct BoardSceneView: UIViewRepresentable {
         view.backgroundColor = UIColor(red: 0.035, green: 0.18, blue: 0.13, alpha: 1)
         view.scene = Coordinator.makeScene()
         view.autoenablesDefaultLighting = false
-        view.allowsCameraControl = true
+        view.allowsCameraControl = !reduceMotion
         view.antialiasingMode = .multisampling4X
         view.preferredFramesPerSecond = 60
         view.isPlaying = true
@@ -132,7 +139,8 @@ private struct BoardSceneView: UIViewRepresentable {
 
     func updateUIView(_ view: SCNView, context: Context) {
         context.coordinator.view = view
-        context.coordinator.synchronize(token: moveToken, playerIndex: playerIndex, positions: playerPositions)
+        view.allowsCameraControl = !reduceMotion
+        context.coordinator.synchronize(token: moveToken, playerIndex: playerIndex, positions: playerPositions, reduceMotion: reduceMotion)
     }
 
     final class Coordinator {
@@ -141,7 +149,7 @@ private struct BoardSceneView: UIViewRepresentable {
         private var positions = [0, 2, 4, 6, 8, 10]
         private var hasInitializedPositions = false
 
-        func synchronize(token: Int, playerIndex: Int, positions target: [Int]) {
+        func synchronize(token: Int, playerIndex: Int, positions target: [Int], reduceMotion: Bool) {
             guard let scene = view?.scene else { return }
             let count = min(target.count, positions.count)
             guard count > 0 else { return }
@@ -157,6 +165,11 @@ private struct BoardSceneView: UIViewRepresentable {
                 node.isHidden = false
                 let destination = Self.spacePosition(target[index] % 20)
                 if isRolling && index == movingIndex {
+                    if reduceMotion {
+                        node.removeAllActions()
+                        node.position = SCNVector3(destination.x, 0.24, destination.y)
+                        continue
+                    }
                     let move = SCNAction.move(to: SCNVector3(destination.x, 0.24, destination.y), duration: 0.82)
                     move.timingMode = .easeInEaseOut
                     let turn = SCNAction.rotateBy(x: .pi * 2, y: .pi * 2, z: .pi * 2, duration: 0.82)
