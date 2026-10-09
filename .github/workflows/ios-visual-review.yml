@@ -128,20 +128,26 @@ jobs:
             route="$2"
             xcrun simctl terminate "$UDID" com.bancodotabuleiro.pix 2>/dev/null || true
             if [ "$route" = home ]; then
-              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data
             elif [ "$route" = transfer ]; then
-              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -capture-transfer
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer
+            elif [ "$route" = bank ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-bank
+            elif [ "$route" = charge ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-charge
             else
-              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode "-capture-tab-$route"
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data "-capture-tab-$route"
             fi
             sleep 3
             xcrun simctl io "$UDID" screenshot "visual-review/screenshots/$name.png"
           }
           capture 01-dashboard home
           capture 02-pix transfer
-          capture 03-board board
-          capture 04-properties properties
-          capture 05-statement statement
+          capture 03-bank bank
+          capture 04-charge charge
+          capture 05-board board
+          capture 06-properties properties
+          capture 07-statement statement
 
       - name: Build visual contact sheet
         if: always() && steps.build.outcome == 'success'

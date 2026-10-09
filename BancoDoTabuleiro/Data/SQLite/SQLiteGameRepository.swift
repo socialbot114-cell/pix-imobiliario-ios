@@ -544,7 +544,7 @@ final class GameStore: ObservableObject {
             }
             self.repository = localRepository
             game = try localRepository.latestGame()
-            if game == nil, arguments.contains("-screenshot-mode") {
+            if isUITesting, game == nil, arguments.contains("-screenshot-mode") {
                 game = try localRepository.createGame(
                     name: "Noite de Jogo",
                     startingBalanceMinor: 245_000,
@@ -555,6 +555,9 @@ final class GameStore: ObservableObject {
                         NewPlayer(name: "Diego", colorHex: "#9253C7", token: "casa")
                     ]
                 )
+            }
+            if isUITesting, arguments.contains("-visual-review-data"), let game {
+                self.game = try Self.seedVisualReviewData(repository: localRepository, game: game)
             }
         } catch {
             self.repository = nil
@@ -637,4 +640,41 @@ final class GameStore: ObservableObject {
     }
 
     func clearError() { errorMessage = nil }
+
+    private static func seedVisualReviewData(repository: SQLiteGameRepository, game: GameSnapshot) throws -> GameSnapshot {
+        guard game.players.count > 1,
+              let ana = game.players.first,
+              let bruno = game.players.dropFirst().first,
+              let firstProperty = game.properties.first else { return game }
+
+        _ = try repository.buyProperty(
+            gameID: game.id,
+            playerID: ana.id,
+            propertyID: firstProperty.id,
+            idempotencyKey: "visual-purchase-\(game.id)"
+        )
+        _ = try repository.transfer(
+            gameID: game.id,
+            fromPlayerID: ana.id,
+            toPlayerID: bruno.id,
+            amountMinor: 12_500,
+            description: "PIX interno · acordo de mesa",
+            idempotencyKey: "visual-transfer-\(game.id)"
+        )
+        _ = try repository.payRent(
+            gameID: game.id,
+            payerPlayerID: bruno.id,
+            propertyID: firstProperty.id,
+            idempotencyKey: "visual-rent-\(game.id)"
+        )
+        _ = try repository.bankMovement(
+            gameID: game.id,
+            playerID: ana.id,
+            amountMinor: 20_000,
+            kind: .receive,
+            description: "Renda pela casa inicial",
+            idempotencyKey: "visual-bank-credit-\(game.id)"
+        )
+        return try repository.snapshot(gameID: game.id)
+    }
 }

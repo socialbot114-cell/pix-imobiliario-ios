@@ -88,8 +88,8 @@ struct ChargeView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var creatorID: Int64 = 0
     @State private var payerID: Int64 = 0
-    @State private var amount = ""
-    @State private var description = "Aluguel"
+    @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "350" : ""
+    @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Aluguel da Rua Verde" : "Aluguel"
 
     private var players: [GamePlayer] { store.game?.players ?? [] }
 
@@ -151,8 +151,8 @@ struct BankOperationView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
     @State private var kind: BankMovementKind = .receive
-    @State private var amount = ""
-    @State private var description = ""
+    @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "200" : ""
+    @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Renda pela casa inicial" : ""
 
     var body: some View {
         Form {

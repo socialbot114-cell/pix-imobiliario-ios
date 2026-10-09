@@ -90,8 +90,13 @@ struct HomeView: View {
             Text("O histórico e o resumo continuarão salvos neste iPhone.")
         }
         .onAppear {
-            if ProcessInfo.processInfo.arguments.contains("-capture-transfer") {
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-capture-transfer") {
                 sheet = .transfer
+            } else if arguments.contains("-capture-bank") {
+                sheet = .bank
+            } else if arguments.contains("-capture-charge") {
+                sheet = .charge
             }
         }
     }
