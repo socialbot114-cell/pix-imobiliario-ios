@@ -469,7 +469,7 @@ struct TransactionRow: View {
                 Text(transaction.description)
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
-                    .lineLimit(1)
+                    .lineLimit(2)
                 Text("\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(Palette.muted)

@@ -658,7 +658,7 @@ final class GameStore: ObservableObject {
             fromPlayerID: ana.id,
             toPlayerID: bruno.id,
             amountMinor: 12_500,
-            description: "PIX interno · acordo de mesa",
+            description: "PIX · acordo de mesa",
             idempotencyKey: "visual-transfer-\(game.id)"
         )
         _ = try repository.payRent(

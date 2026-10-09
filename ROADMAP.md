@@ -19,14 +19,14 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | Semana | Marco | Entregas | Saída esperada | Estado |
 |---|---|---|---|---|
 | 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
-| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Código criado; primeiro run bloqueado pelo billing da conta |
-| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | Implementado; execução XCTest pendente |
-| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Primeira versão implementada; revisão visual pendente |
-| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Primeira versão implementada; execução XCTest pendente |
-| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, preview e USDZ gerados/inspecionados localmente; carregar no iPhone continua pendente |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 379582 |
+| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 10 XCTest passaram no run 379582 |
+| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 5 testes de UI passaram no run 379582 |
+| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos cobertos por XCTest e UI tests no run 379582 |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 379582 |
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros e estados vazios | MVP P0 funcional e polido | Planejada |
-| 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | Planejada |
-| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Planejada |
+| 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | Primeira rodada: 10 unit tests + 5 UI tests passaram |
+| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Sete prints revisados; ajustes finos em andamento |
 | 9 | Estabilização | QA final, documentação, CI verde e pacote para teste | Build candidato a teste em aparelho | Planejada |
 
 > As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
@@ -106,6 +106,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 | 2026-10-09 | Rodada 5 · workflow_dispatch | Executada nova tentativa manual, run [37954408138](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37954408138) | Mesmo bloqueio de billing/spending limit antes de qualquer step. Manter o projeto no repositório não altera a disponibilidade dos runners. | Retomar build, XCTest e revisão de prints quando a conta permitir iniciar Actions |
 | 2026-10-09 | Rodada 6 · repositório público | Visibilidade alterada a pedido do usuário; runners iniciaram. Runs [37955262257](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37955262257) e [37956421521](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37956421521) trouxeram os primeiros erros reais | Corrigidos: Blender precisava de `libegl1`; `GameStore.repository` precisava ser mutável no catch; Blender também precisava do caminho absoluto do binário na mesma etapa. No run 379564 o Blender e o build iOS passaram; os XCTest pararam em `@testable import` porque faltava `ENABLE_TESTABILITY`. As cinco capturas foram geradas e inspecionadas. | Habilitar testability, enriquecer fixture visual e rodar os testes novamente |
 | 2026-10-09 | Rodada 7 · primeira revisão visual real | App compilou no simulador; contact sheet real revisada; `ENABLE_TESTABILITY=YES` e fixture visual com PIX/aluguel/compra/crédito; workflow ampliado para sete telas, incluindo Banco e Cobrança | No run [37956421521](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37956421521), Blender e build iOS passaram; XCTest foi bloqueado antes da execução por `@testable import` sem testability. A contact sheet mostrou telas limpas e coerentes, mas dashboard/extrato exibiam só a distribuição inicial; a fixture nova corrige isso. | Fazer push da correção de testability/fixture; executar XCTest e revisar o contact sheet atualizado |
+| 2026-10-09 | Rodada 8 · CI e revisão da primeira contact sheet | Corrigido `ENABLE_TESTABILITY`; fixture de revisão agora mostra operações variadas; workflow captura 7 telas, incluindo PIX, Banco e Cobrança | Run [37958242842](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37958242842) passou: Blender, build, 10 unit tests, 5 UI tests e captura de prints. O extrato truncava a descrição do PIX; agora permite duas linhas e usa um motivo de demonstração mais curto. | Revalidar o ajuste visual e avançar nos checks de acessibilidade |
 
 ### Registro detalhado da rodada 1
 
