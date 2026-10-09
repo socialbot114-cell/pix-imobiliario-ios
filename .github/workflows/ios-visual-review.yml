@@ -31,7 +31,7 @@ jobs:
             --output "$ARCHIVE"
           tar -xf "$ARCHIVE" -C "$RUNNER_TEMP"
           echo "$INSTALL_DIR" >> "$GITHUB_PATH"
-          blender --version
+          "$INSTALL_DIR/blender" --version
 
       - name: Generate original board and USDZ
         run: blender --background --python Scripts/generate_board_assets.py -- BancoDoTabuleiro/Art.scnassets
