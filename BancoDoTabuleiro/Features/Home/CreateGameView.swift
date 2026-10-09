@@ -174,7 +174,6 @@ struct CreateGameView: View {
                 validationMessage(setupMessage)
             }
         }
-        .accessibilityIdentifier("game-details-step")
     }
 
     private var playersStep: some View {
@@ -254,7 +253,6 @@ struct CreateGameView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
         }
-        .accessibilityIdentifier("players-step")
     }
 
     private var stepActions: some View {
@@ -505,6 +503,5 @@ private struct PlayerSetupCard: View {
         .padding(14)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Palette.line, lineWidth: 1))
-        .accessibilityIdentifier("player-card-\(number)")
     }
 }

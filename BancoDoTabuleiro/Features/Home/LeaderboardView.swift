@@ -34,7 +34,6 @@ struct LeaderboardView: View {
                         PlayerStandingRow(standing: standing)
                     }
                 }
-                .accessibilityIdentifier("leaderboard-standings")
             }
             .padding(18)
         }

@@ -456,7 +456,6 @@ struct HomeView: View {
         }
         .padding(16)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
-        .accessibilityIdentifier("live-ranking-card")
     }
 
     private func actionButton(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
