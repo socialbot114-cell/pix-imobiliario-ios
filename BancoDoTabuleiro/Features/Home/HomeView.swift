@@ -93,6 +93,7 @@ struct HomeView: View {
         }
         .confirmationDialog("Apagar todas as partidas salvas?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Apagar dados locais", role: .destructive) { store.deleteAllGames() }
+                .accessibilityIdentifier("confirm-delete-local-data")
             Button("Cancelar", role: .cancel) { }
         } message: {
             Text("Esta ação remove partidas, saldos, imóveis e extratos deste iPhone. Ela não pode ser desfeita.")

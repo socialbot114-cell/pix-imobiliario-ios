@@ -112,7 +112,7 @@ final class BankFlowUITests: XCTestCase {
 
         app.buttons["Opções da partida"].tap()
         app.buttons["Apagar dados locais"].tap()
-        let confirmDelete = app.buttons.matching(identifier: "Apagar dados locais").lastMatch
+        let confirmDelete = app.buttons["confirm-delete-local-data"]
         XCTAssertTrue(confirmDelete.waitForExistence(timeout: 4))
         confirmDelete.tap()
 
