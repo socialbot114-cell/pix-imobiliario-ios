@@ -100,7 +100,10 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["balance-value"].exists)
         let pixButton = app.buttons["home-action-PIX"]
         XCTAssertTrue(pixButton.waitForExistence(timeout: 5))
-        if !pixButton.isHittable { app.swipeUp() }
+        for _ in 0..<5 {
+            if pixButton.isHittable { break }
+            app.swipeUp()
+        }
         XCTAssertTrue(pixButton.isHittable)
         XCTAssertTrue(app.tabBars.buttons["Extrato"].exists)
     }

@@ -335,39 +335,52 @@ struct HomeView: View {
     private func playerCard(_ game: GameSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionTitle(title: "Jogadores na partida")
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 17) {
+            if dynamicTypeSize.isAccessibilitySize {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                     ForEach(game.players) { player in
-                            Button {
-                                store.selectActivePlayer(player)
-                            } label: {
-                            VStack(spacing: 6) {
-                                ZStack(alignment: .topTrailing) {
-                                    Circle().fill(Color(hexString: player.colorHex)).frame(width: 48, height: 48)
-                                        .overlay(Image(systemName: tokenSymbol(player.token)).font(.system(size: 20, weight: .bold)).foregroundStyle(.white))
-                                        .overlay(Circle().stroke(player.id == game.currentPlayer?.id ? Palette.gold : .clear, lineWidth: 3))
-                                    if player.id == game.currentPlayer?.id {
-                                        Image(systemName: "crown.fill").font(.system(size: 12)).foregroundStyle(Palette.gold).offset(x: 5, y: -4)
-                                    }
-                                }
-                                Text(player.name)
-                                    .font(.system(.caption2, design: .rounded, weight: .semibold))
-                                    .foregroundStyle(Palette.ink)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.65)
-                            }
+                        playerButton(player, game: game, accessibilitySize: true)
+                    }
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 17) {
+                        ForEach(game.players) { player in
+                            playerButton(player, game: game, accessibilitySize: false)
                         }
-                        .buttonStyle(.plain)
-                        .frame(width: 58)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityIdentifier("select-player-\(player.id)")
-                        .disabled(game.status != "active")
                     }
                 }
             }
         }
         .padding(17)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    private func playerButton(_ player: GamePlayer, game: GameSnapshot, accessibilitySize: Bool) -> some View {
+        Button {
+            store.selectActivePlayer(player)
+        } label: {
+            VStack(spacing: 6) {
+                ZStack(alignment: .topTrailing) {
+                    Circle().fill(Color(hexString: player.colorHex)).frame(width: 48, height: 48)
+                        .overlay(Image(systemName: tokenSymbol(player.token)).font(.system(size: 20, weight: .bold)).foregroundStyle(.white))
+                        .overlay(Circle().stroke(player.id == game.currentPlayer?.id ? Palette.gold : .clear, lineWidth: 3))
+                    if player.id == game.currentPlayer?.id {
+                        Image(systemName: "crown.fill").font(.system(size: 12)).foregroundStyle(Palette.gold).offset(x: 5, y: -4)
+                    }
+                }
+                Text(player.name)
+                    .font(.system(accessibilitySize ? .body : .caption2, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(accessibilitySize ? 2 : 1)
+                    .minimumScaleFactor(accessibilitySize ? 0.85 : 0.65)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: accessibilitySize ? .infinity : 58)
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("select-player-\(player.id)")
+        .disabled(game.status != "active")
     }
 
     private func pendingPayments(_ requests: [PaymentRequest]) -> some View {
