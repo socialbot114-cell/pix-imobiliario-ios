@@ -30,6 +30,9 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(amountField.waitForExistence(timeout: 3))
         amountField.tap()
         amountField.typeText("50")
+        app.buttons["Revisar"].tap()
+        XCTAssertTrue(app.staticTexts["Revise seu PIX"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["edit-transfer"].exists)
         app.buttons["Confirmar"].tap()
 
         XCTAssertTrue(app.staticTexts["transfer-receipt-title"].waitForExistence(timeout: 5))
@@ -46,6 +49,9 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["Fechar"].tap()
         app.tabBars.buttons["Extrato"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["transaction-row-3"].waitForExistence(timeout: 5))
+        app.descendants(matching: .any)["transaction-row-3"].tap()
+        XCTAssertTrue(app.navigationBars["Comprovante"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["MOV-3"].exists)
     }
 
     func testPlayerSetupValidatesDuplicateNamesAndSupportsAddingPlayers() throws {

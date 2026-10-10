@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatementView: View {
     @EnvironmentObject private var store: GameStore
+    @State private var selectedTransaction: GameTransaction?
 
     var body: some View {
         ZStack {
@@ -21,7 +22,11 @@ struct StatementView: View {
                     if let game = store.game, !game.transactions.isEmpty {
                         VStack(spacing: 0) {
                             ForEach(game.transactions) { transaction in
-                                TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id)
+                                Button { selectedTransaction = transaction } label: {
+                                    TransactionRow(transaction: transaction, perspectivePlayerID: game.currentPlayer?.id)
+                                }
+                                    .buttonStyle(.plain)
+                                    .accessibilityHint("Abrir comprovante da movimentação")
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 10)
                             }
@@ -42,5 +47,53 @@ struct StatementView: View {
         }
         .navigationTitle("Extrato")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $selectedTransaction) { transaction in
+            NavigationStack { TransactionReceiptView(transaction: transaction) }
+                .presentationDetents([.large])
+        }
+    }
+}
+
+private struct TransactionReceiptView: View {
+    @Environment(\.dismiss) private var dismiss
+    let transaction: GameTransaction
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Label("Movimentação registrada", systemImage: "checkmark.circle.fill")
+                    .font(.title2.bold()).foregroundStyle(Palette.forest)
+                Text(MoneyFormat.string(transaction.amountMinor))
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+                PremiumCard {
+                    VStack(spacing: 16) {
+                        LabeledContent("Origem", value: transaction.fromName)
+                        LabeledContent("Destino", value: transaction.toName)
+                        LabeledContent("Motivo", value: transaction.description)
+                        LabeledContent("Referência local", value: "MOV-\(transaction.id)")
+                        LabeledContent("Data e hora", value: timestamp)
+                    }
+                }
+                Text("Este comprovante mostra a movimentação original salva no extrato. Saldos atuais podem ter mudado após outras operações.")
+                    .font(.subheadline).foregroundStyle(Palette.muted)
+                Text("M$ é moeda fictícia. Nenhum pagamento real foi enviado.")
+                    .font(.caption).foregroundStyle(Palette.muted)
+            }
+            .padding(20)
+        }
+        .background(Palette.canvas.ignoresSafeArea())
+        .navigationTitle("Comprovante")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Fechar") { dismiss() }
+            }
+        }
+    }
+
+    private var timestamp: String {
+        guard let date = ISO8601DateFormatter().date(from: transaction.createdAt) else { return transaction.createdAt }
+        return date.formatted(date: .abbreviated, time: .shortened)
     }
 }

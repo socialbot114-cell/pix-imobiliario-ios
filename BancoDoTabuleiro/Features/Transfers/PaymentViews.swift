@@ -20,6 +20,8 @@ struct TransferView: View {
     @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Aluguel da Rua Verde" : ""
     @State private var isProcessing = ProcessInfo.processInfo.arguments.contains("-capture-transfer-processing")
     @State private var receipt: TransferReceiptDetails?
+    @State private var isReviewing = false
+    @State private var validationError: String?
 
     private var players: [GamePlayer] { store.game?.players ?? [] }
 
@@ -27,6 +29,8 @@ struct TransferView: View {
         Group {
             if let receipt {
                 receiptView(receipt)
+            } else if isReviewing {
+                reviewView
             } else {
                 transferForm
             }
@@ -43,12 +47,12 @@ struct TransferView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        confirmTransfer()
+                        if isReviewing { confirmTransfer() } else { reviewTransfer() }
                     } label: {
                         if isProcessing {
                             ProgressView().tint(Palette.forest)
                         } else {
-                            Text("Confirmar")
+                            Text(isReviewing ? "Confirmar" : "Revisar")
                         }
                     }
                     .fontWeight(.bold)
@@ -123,8 +127,88 @@ struct TransferView: View {
                     .font(.system(.caption, design: .rounded))
                     .foregroundStyle(Palette.muted)
             }
+            if let validationError {
+                Section {
+                    Text(validationError)
+                        .foregroundStyle(Palette.danger)
+                        .accessibilityIdentifier("transfer-validation-error")
+                }
+            }
         }
         .scrollContentBackground(.hidden)
+    }
+
+    private var reviewView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Revise seu PIX")
+                    .font(.system(.largeTitle, design: .serif, weight: .bold))
+                    .foregroundStyle(Palette.ink)
+                Text(MoneyFormat.string(MoneyFormat.minorUnits(from: amount) ?? 0))
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.forest)
+                PremiumCard {
+                    VStack(spacing: 14) {
+                        reviewParticipant(id: fromPlayerID, role: "Pagador")
+                        reviewParticipant(id: toPlayerID, role: "Recebedor")
+                        LabeledContent("Quem paga", value: players.first { $0.id == fromPlayerID }?.name ?? "—")
+                        LabeledContent("Quem recebe", value: players.first { $0.id == toPlayerID }?.name ?? "—")
+                        LabeledContent("Motivo", value: description.isEmpty ? "PIX Imobiliário" : description)
+                        Divider()
+                        LabeledContent("Saldo atual", value: MoneyFormat.string(players.first { $0.id == fromPlayerID }?.balanceMinor ?? 0))
+                        LabeledContent("Saldo após o PIX", value: MoneyFormat.string((players.first { $0.id == fromPlayerID }?.balanceMinor ?? 0) - (MoneyFormat.minorUnits(from: amount) ?? 0)))
+                    }
+                }
+                if let validationError {
+                    Text(validationError).foregroundStyle(Palette.danger)
+                        .accessibilityIdentifier("transfer-validation-error")
+                }
+                Button("Editar transferência") { isReviewing = false }
+                    .foregroundStyle(Palette.forest)
+                    .accessibilityIdentifier("edit-transfer")
+                Text("Moeda fictícia. A operação será registrada somente nesta partida.")
+                    .font(.caption).foregroundStyle(Palette.muted)
+            }
+            .padding(20)
+        }
+    }
+
+    private func reviewTransfer() {
+        guard validateTransfer() else { return }
+        isReviewing = true
+    }
+
+    private func reviewParticipant(id: Int64, role: String) -> some View {
+        let player = players.first { $0.id == id }
+        return HStack(spacing: 12) {
+            Image(systemName: "person.fill")
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(Color(hexString: player?.colorHex ?? "#13845B"), in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(role).font(.caption).foregroundStyle(Palette.muted)
+                Text(player?.name ?? "—").font(.headline).foregroundStyle(Palette.ink)
+            }
+            Spacer()
+        }
+    }
+
+    private func validateTransfer() -> Bool {
+        validationError = nil
+        guard let value = MoneyFormat.minorUnits(from: amount) else {
+            validationError = GameStoreError.invalidAmount.localizedDescription
+            return false
+        }
+        guard fromPlayerID != toPlayerID else {
+            validationError = GameStoreError.samePlayer.localizedDescription
+            return false
+        }
+        guard let payer = players.first(where: { $0.id == fromPlayerID }), payer.balanceMinor >= value else {
+            validationError = GameStoreError.insufficientFunds.localizedDescription
+            return false
+        }
+        return true
     }
 
     private func receiptView(_ receipt: TransferReceiptDetails) -> some View {
@@ -230,6 +314,7 @@ struct TransferView: View {
 
     private func confirmTransfer() {
         guard !isProcessing, receipt == nil else { return }
+        guard validateTransfer() else { return }
         guard let amountMinor = MoneyFormat.minorUnits(from: amount) else {
             store.errorMessage = GameStoreError.invalidAmount.localizedDescription
             return

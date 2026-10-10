@@ -90,6 +90,46 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 - VoiceOver, Dynamic Type e Reduzir Movimento têm suporte nos fluxos principais.
 - Screenshots do Actions são revisados em cada rodada visual e regressões são corrigidas antes da semana 9.
 
+## Refinamento da experiência · plano de execução
+
+### Rodada 22 · Operações — em execução
+Primeira implementação local: etapa Revisar com nomes, valor, motivo e saldo antes/depois; validação inline de valor, participantes iguais e fundos; retorno para edição preserva campos. Teste do fluxo atualizado. `git diff --check` passou; build/XCTest pendentes no macOS (este host Linux não tem Xcode). Avatares e reabertura de comprovantes ainda pendentes.
+Continuação local: avatares com cores dos participantes adicionados à revisão; linhas do extrato abrem comprovante com dados persistidos, referência e horário original. O comprovante histórico não apresenta saldos atuais como se fossem históricos. Teste de interface ampliado para reabertura. Build/XCTest e capturas ainda pendentes; rodada não aprovada até execução no macOS.
+- [ ] PIX: preencher → revisar → confirmar → comprovante.
+- [ ] Revisão com avatar/nome dos participantes, valor, motivo, saldo atual e saldo previsto do pagador.
+- [ ] Erros inline para valor inválido, saldo insuficiente e participantes iguais; preservar campos e permitir corrigir.
+- [ ] Reabrir comprovantes pelo extrato usando o lançamento persistido; distinguir saldo histórico de saldo atual.
+- [ ] Validar sucesso, erro sem movimentação, retorno para edição e prevenção de confirmação duplicada.
+
+### Rodada 23 · Central da mesa
+- [ ] Explicitar a conta ativa: “Você está movimentando a conta de …”.
+- [ ] Próximo jogador com seleção persistida e passagem clara do iPhone.
+- [ ] Mostrar/ocultar saldo com rótulos acessíveis.
+- [ ] Cobranças pendentes com valor, pagador e recebedor antes de pagar.
+- [ ] Manter atalhos prioritários, ranking compacto e acesso ao detalhe das movimentações.
+- [ ] Cadastro: escolher quem começa, reorganizar ordem e destacar o primeiro jogador.
+- [ ] Nome claramente editável; teclado com Próximo/Concluir; combinações de cor/peça distinguíveis.
+- [ ] Corrigir Peão vazio e alinhar identidade visual entre cadastro, painel e tabuleiro.
+- [ ] Aceite: troca de contexto sem operação acidental; seis jogadores e nomes longos utilizáveis.
+
+### Rodada 24 · Entrada e histórico
+- [ ] Entrada com Criar partida, Continuar partida e Explorar demonstração.
+- [ ] Demonstração isolada das partidas reais, substituindo a prévia de acesso sem utilidade prática.
+- [ ] Listar partidas ativas/encerradas e retomar uma partida específica.
+- [ ] Resultado final com empates explícitos e saldo, imóveis e patrimônio separados.
+- [ ] Compartilhar resumo com indicação de moeda fictícia.
+- [ ] Ranking entre partidas: etapa posterior, dependente de perfis estáveis de jogadores.
+- [ ] Aceite: demonstração não altera dados reais; retomada restaura jogador, saldos e extrato corretos.
+
+### Rodada 25 · Acabamento e acessibilidade
+- [ ] Reduzir títulos/espaços excessivos; padronizar ações, espaçamentos e áreas de toque.
+- [ ] Resolver título truncado de movimentação do banco.
+- [ ] Feedback tátil de sucesso/erro e transições discretas respeitando Reduzir Movimento.
+- [ ] Loading acompanha trabalho real; avaliar sua utilidade no fluxo normal, sem demora artificial.
+- [ ] Revisar onboarding, ranking e comprovante com Dynamic Type, nomes longos e seis jogadores.
+- [ ] Auditoria manual de VoiceOver/rotor em aparelho e revisão em diferentes tamanhos de tela.
+- [ ] Aceite: capturas revisadas, fluxos principais acessíveis e regressão funcional verde.
+
 ## Pós-MVP
 
 - Multiplayer entre dispositivos com backend como autoridade, identidade de convidado, códigos de convite, sincronização e transações atômicas no servidor.
