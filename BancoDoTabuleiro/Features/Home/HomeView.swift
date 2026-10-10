@@ -325,6 +325,7 @@ struct HomeView: View {
                         .font(.system(size: 8, weight: .heavy, design: .rounded))
                         .tracking(0.5)
                         .foregroundStyle(Palette.card.opacity(0.78))
+                        .frame(minHeight: 44)
                 }
                 .accessibilityLabel(isPrimaryBalanceHidden ? "Mostrar saldo principal" : "Ocultar saldo principal")
                 .accessibilityIdentifier("toggle-balance-visibility")

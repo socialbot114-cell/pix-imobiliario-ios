@@ -5,6 +5,12 @@ private enum GameSetupStep: Equatable {
     case players
 }
 
+private enum GameSetupField: Hashable {
+    case gameName
+    case startingBalance
+    case player(UUID)
+}
+
 private struct PlayerDraft: Identifiable {
     let id: UUID
     var name: String
@@ -34,7 +40,7 @@ private struct PlayerTokenChoice: Identifiable {
 struct CreateGameView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var focusedField: UUID?
+    @FocusState private var focusedField: GameSetupField?
     @State private var step: GameSetupStep
     @State private var gameName = "Noite de Jogo"
     @State private var startingBalance = "2.450"
@@ -93,6 +99,11 @@ struct CreateGameView: View {
                 Button("Cancelar") { dismiss() }
                     .foregroundStyle(Palette.forest)
             }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Concluir") { focusedField = nil }
+                    .foregroundStyle(Palette.forest)
+            }
         }
     }
 
@@ -138,6 +149,8 @@ struct CreateGameView: View {
                     TextField("Ex.: Noite de Jogo", text: $gameName)
                         .textInputAutocapitalization(.words)
                         .submitLabel(.next)
+                        .focused($focusedField, equals: .gameName)
+                        .onSubmit { focusedField = .startingBalance }
                         .accessibilityLabel("Nome da partida")
                         .accessibilityIdentifier("game-name-field")
 
@@ -151,6 +164,9 @@ struct CreateGameView: View {
                         TextField("2.450", text: $startingBalance)
                             .keyboardType(.decimalPad)
                             .font(.system(.title3, design: .rounded, weight: .bold))
+                            .focused($focusedField, equals: .startingBalance)
+                            .submitLabel(.done)
+                            .onSubmit { advanceToPlayers() }
                             .accessibilityLabel("Saldo inicial por pessoa")
                             .accessibilityIdentifier("starting-balance-field")
                         Spacer(minLength: 0)
@@ -202,6 +218,7 @@ struct CreateGameView: View {
             ForEach($players) { playerBinding in
                 let playerID = playerBinding.wrappedValue.id
                 let index = players.firstIndex(where: { $0.id == playerID }) ?? 0
+                let nextPlayerID = index + 1 < players.count ? players[index + 1].id : nil
                 PlayerSetupCard(
                     player: playerBinding,
                     number: index + 1,
@@ -210,6 +227,7 @@ struct CreateGameView: View {
                     canMoveUp: index > 0,
                     canMoveDown: index < players.count - 1,
                     focus: $focusedField,
+                    nextPlayerID: nextPlayerID,
                     onRemove: { removePlayer(id: playerID) },
                     onMoveUp: { movePlayer(id: playerID, by: -1) },
                     onMoveDown: { movePlayer(id: playerID, by: 1) }
@@ -406,7 +424,8 @@ private struct PlayerSetupCard: View {
     let canRemove: Bool
     let canMoveUp: Bool
     let canMoveDown: Bool
-    let focus: FocusState<UUID?>.Binding
+    let focus: FocusState<GameSetupField?>.Binding
+    let nextPlayerID: UUID?
     let onRemove: () -> Void
     let onMoveUp: () -> Void
     let onMoveDown: () -> Void
@@ -453,7 +472,15 @@ private struct PlayerSetupCard: View {
                         .textContentType(.nickname)
                         .textInputAutocapitalization(.words)
                         .autocorrectionDisabled()
-                        .focused(focus, equals: player.id)
+                        .focused(focus, equals: .player(player.id))
+                        .submitLabel(nextPlayerID == nil ? .done : .next)
+                        .onSubmit {
+                            if let nextPlayerID {
+                                focus.wrappedValue = .player(nextPlayerID)
+                            } else {
+                                focus.wrappedValue = nil
+                            }
+                        }
                         .accessibilityIdentifier("player-name-\(number)")
                 }
 

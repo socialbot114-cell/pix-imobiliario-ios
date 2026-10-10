@@ -99,6 +99,7 @@ final class BankFlowUITests: XCTestCase {
         if !moveSecondUp.isHittable { app.swipeUp() }
         moveSecondUp.tap()
         XCTAssertTrue(app.staticTexts["starts-first-player"].exists)
+        XCTAssertTrue(app.buttons["player-token-1"].label.contains("Casa"))
 
         let firstName = app.textFields["player-name-1"]
         let secondName = app.textFields["player-name-2"]
@@ -140,6 +141,42 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertEqual(balance.label, "Saldo oculto")
         app.buttons["toggle-balance-visibility"].tap()
         XCTAssertTrue(balance.label.contains("M$ 2.450,00"))
+    }
+
+    func testSixPlayerRosterRemainsScrollableAtAccessibilityTextSize() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = [
+            "-ui-testing",
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityXXXL"
+        ]
+        app.launch()
+        let openSetup = app.buttons["create-game-button"]
+        for _ in 0..<5 {
+            if openSetup.exists && openSetup.isHittable { break }
+            app.swipeUp()
+        }
+        openSetup.tap()
+        app.buttons["continue-to-players"].tap()
+
+        for expectedCount in 3...6 {
+            let addPlayer = app.buttons["add-player-button"]
+            if !addPlayer.isHittable { app.swipeUp() }
+            addPlayer.tap()
+            XCTAssertTrue(app.staticTexts["player-count"].label.contains("\(expectedCount) de 6"))
+        }
+        XCTAssertFalse(app.buttons["add-player-button"].exists)
+
+        let lastPlayerName = app.textFields["player-name-6"]
+        for _ in 0..<5 {
+            if lastPlayerName.exists && lastPlayerName.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(lastPlayerName.waitForExistence(timeout: 5))
+        lastPlayerName.tap()
+        lastPlayerName.typeText("AlexandriaMuitoLonga")
+        XCTAssertEqual(lastPlayerName.value as? String, "AlexandriaMuitoLonga")
     }
 
     func testTransferProcessingStateClearlyIndicatesLocalOperation() throws {
