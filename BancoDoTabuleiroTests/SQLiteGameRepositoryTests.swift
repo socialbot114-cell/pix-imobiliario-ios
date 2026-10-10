@@ -113,6 +113,25 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         XCTAssertEqual(result.transactions.filter { $0.kind == "initial" }.count, 2)
     }
 
+    func testTransferBetweenSamePlayerIsRejectedWithoutChangingLedger() throws {
+        let player = try XCTUnwrap(game.players.first)
+
+        XCTAssertThrowsError(try repository.transfer(
+            gameID: game.id,
+            fromPlayerID: player.id,
+            toPlayerID: player.id,
+            amountMinor: 25_00,
+            description: "PIX para si mesmo",
+            idempotencyKey: "same-player-transfer"
+        )) { error in
+            XCTAssertEqual(error as? GameStoreError, .samePlayer)
+        }
+
+        let snapshot = try repository.snapshot(gameID: game.id)
+        XCTAssertEqual(snapshot.players.map(\.balanceMinor), [1_000_00, 1_000_00])
+        XCTAssertFalse(snapshot.transactions.contains { $0.description == "PIX para si mesmo" })
+    }
+
     func testPropertyPurchaseIsAtomicAndRentUsesPropertyOwner() throws {
         let buyer = try XCTUnwrap(game.players[0])
         let payer = try XCTUnwrap(game.players[1])

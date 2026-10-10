@@ -11,9 +11,15 @@ private struct TransferReceiptDetails {
     let toBalanceMinor: Int64
 }
 
+private enum TransferField: Hashable {
+    case amount
+    case description
+}
+
 struct TransferView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedField: TransferField?
     @State private var fromPlayerID: Int64 = 0
     @State private var toPlayerID: Int64 = 0
     @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "150" : ""
@@ -91,9 +97,15 @@ struct TransferView: View {
             }
         }
         .interactiveDismissDisabled(isProcessing)
+        .onChange(of: amount) { _, _ in validationError = nil }
+        .onChange(of: fromPlayerID) { _, _ in validationError = nil }
+        .onChange(of: toPlayerID) { _, _ in validationError = nil }
         .onAppear {
             setDefaultPlayers()
-            if ProcessInfo.processInfo.arguments.contains("-capture-transfer-receipt") {
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-capture-transfer-review") {
+                reviewTransfer()
+            } else if arguments.contains("-capture-transfer-receipt") {
                 confirmTransfer()
             }
         }
@@ -114,9 +126,11 @@ struct TransferView: View {
                     TextField("0,00", text: $amount)
                         .keyboardType(.decimalPad)
                         .font(.system(.title2, design: .rounded, weight: .bold))
+                        .focused($focusedField, equals: .amount)
                         .accessibilityIdentifier("transfer-amount-field")
                 }
                 TextField("Ex.: Aluguel, empréstimo...", text: $description)
+                    .focused($focusedField, equals: .description)
                     .accessibilityIdentifier("transfer-description-field")
             } header: {
                 Text("Valor e descrição")
@@ -151,8 +165,6 @@ struct TransferView: View {
                     VStack(spacing: 14) {
                         reviewParticipant(id: fromPlayerID, role: "Pagador")
                         reviewParticipant(id: toPlayerID, role: "Recebedor")
-                        LabeledContent("Quem paga", value: players.first { $0.id == fromPlayerID }?.name ?? "—")
-                        LabeledContent("Quem recebe", value: players.first { $0.id == toPlayerID }?.name ?? "—")
                         LabeledContent("Motivo", value: description.isEmpty ? "PIX Imobiliário" : description)
                         Divider()
                         LabeledContent("Saldo atual", value: MoneyFormat.string(players.first { $0.id == fromPlayerID }?.balanceMinor ?? 0))
@@ -174,6 +186,7 @@ struct TransferView: View {
     }
 
     private func reviewTransfer() {
+        focusedField = nil
         guard validateTransfer() else { return }
         isReviewing = true
     }
@@ -181,7 +194,7 @@ struct TransferView: View {
     private func reviewParticipant(id: Int64, role: String) -> some View {
         let player = players.first { $0.id == id }
         return HStack(spacing: 12) {
-            Image(systemName: "person.fill")
+            Image(systemName: tokenSymbol(player?.token))
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(Color(hexString: player?.colorHex ?? "#13845B"), in: Circle())
@@ -191,6 +204,17 @@ struct TransferView: View {
                 Text(player?.name ?? "—").font(.headline).foregroundStyle(Palette.ink)
             }
             Spacer()
+        }
+    }
+
+    private func tokenSymbol(_ token: String?) -> String {
+        switch token {
+        case "casa": return "house.fill"
+        case "torre": return "building.2.fill"
+        case "estrela": return "star.fill"
+        case "carro": return "car.fill"
+        case "coroa": return "crown.fill"
+        default: return "pawn.fill"
         }
     }
 
@@ -314,14 +338,15 @@ struct TransferView: View {
 
     private func confirmTransfer() {
         guard !isProcessing, receipt == nil else { return }
+        focusedField = nil
         guard validateTransfer() else { return }
         guard let amountMinor = MoneyFormat.minorUnits(from: amount) else {
             store.errorMessage = GameStoreError.invalidAmount.localizedDescription
             return
         }
         guard let game = store.game,
-              let payer = game.players.first(where: { $0.id == fromPlayerID }),
-              let receiver = game.players.first(where: { $0.id == toPlayerID }) else {
+              game.players.contains(where: { $0.id == fromPlayerID }),
+              game.players.contains(where: { $0.id == toPlayerID }) else {
             store.errorMessage = GameStoreError.noActiveGame.localizedDescription
             return
         }

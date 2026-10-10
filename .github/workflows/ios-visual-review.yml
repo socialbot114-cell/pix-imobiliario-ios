@@ -131,6 +131,8 @@ jobs:
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data
             elif [ "$route" = transfer ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer
+            elif [ "$route" = transfer-review ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer-review
             elif [ "$route" = transfer-processing ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer-processing
             elif [ "$route" = transfer-receipt ]; then
@@ -172,6 +174,7 @@ jobs:
           capture 13-demo-access demo-access
           capture 14-transfer-processing transfer-processing
           capture 15-transfer-receipt transfer-receipt
+          capture 16-transfer-review transfer-review
 
       - name: Build visual contact sheet
         if: always() && steps.build.outcome == 'success'

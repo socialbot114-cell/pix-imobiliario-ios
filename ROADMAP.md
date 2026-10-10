@@ -93,13 +93,11 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 ## Refinamento da experiência · plano de execução
 
 ### Rodada 22 · Operações — em execução
-Primeira implementação local: etapa Revisar com nomes, valor, motivo e saldo antes/depois; validação inline de valor, participantes iguais e fundos; retorno para edição preserva campos. Teste do fluxo atualizado. `git diff --check` passou; build/XCTest pendentes no macOS (este host Linux não tem Xcode). Avatares e reabertura de comprovantes ainda pendentes.
-Continuação local: avatares com cores dos participantes adicionados à revisão; linhas do extrato abrem comprovante com dados persistidos, referência e horário original. O comprovante histórico não apresenta saldos atuais como se fossem históricos. Teste de interface ampliado para reabertura. Build/XCTest e capturas ainda pendentes; rodada não aprovada até execução no macOS.
-- [ ] PIX: preencher → revisar → confirmar → comprovante.
-- [ ] Revisão com avatar/nome dos participantes, valor, motivo, saldo atual e saldo previsto do pagador.
-- [ ] Erros inline para valor inválido, saldo insuficiente e participantes iguais; preservar campos e permitir corrigir.
-- [ ] Reabrir comprovantes pelo extrato usando o lançamento persistido; distinguir saldo histórico de saldo atual.
-- [ ] Validar sucesso, erro sem movimentação, retorno para edição e prevenção de confirmação duplicada.
+- [x] PIX: preencher → revisar → confirmar → comprovante.
+- [x] Revisão com avatar/cor/peça dos participantes, valor, motivo, saldo atual e saldo previsto do pagador.
+- [x] Erros inline para valor inválido, saldo insuficiente e participantes iguais; edição preserva os campos.
+- [x] Reabrir comprovantes pelo extrato usando o lançamento persistido, referência e horário originais; explicitar que saldos atuais podem ter mudado.
+- [ ] Reexecutar CI depois dos últimos testes de erro/same-player e revisar a tela de revisão do PIX; contagens esperadas: 13 unit tests + 13 UI tests, 16 capturas.
 
 ### Rodada 23 · Central da mesa
 - [ ] Explicitar a conta ativa: “Você está movimentando a conta de …”.

@@ -111,6 +111,7 @@ struct HomeView: View {
         .onAppear {
             let arguments = ProcessInfo.processInfo.arguments
             if arguments.contains("-capture-transfer")
+                || arguments.contains("-capture-transfer-review")
                 || arguments.contains("-capture-transfer-processing")
                 || arguments.contains("-capture-transfer-receipt") {
                 sheet = .transfer

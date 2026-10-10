@@ -33,6 +33,10 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["Revisar"].tap()
         XCTAssertTrue(app.staticTexts["Revise seu PIX"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["edit-transfer"].exists)
+        app.buttons["edit-transfer"].tap()
+        XCTAssertEqual(app.textFields["transfer-amount-field"].value as? String, "50")
+        app.buttons["Revisar"].tap()
+        XCTAssertTrue(app.staticTexts["Revise seu PIX"].waitForExistence(timeout: 5))
         app.buttons["Confirmar"].tap()
 
         XCTAssertTrue(app.staticTexts["transfer-receipt-title"].waitForExistence(timeout: 5))
@@ -52,6 +56,24 @@ final class BankFlowUITests: XCTestCase {
         app.descendants(matching: .any)["transaction-row-3"].tap()
         XCTAssertTrue(app.navigationBars["Comprovante"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["transaction-receipt-reference"].label.contains("MOV-3"))
+    }
+
+    func testInsufficientPIXShowsInlineErrorAndPreservesEnteredAmount() throws {
+        createGameWithPlayers()
+        tapHomeAction("PIX")
+
+        let amountField = app.textFields["transfer-amount-field"]
+        XCTAssertTrue(amountField.waitForExistence(timeout: 4))
+        amountField.tap()
+        amountField.typeText("3000")
+        app.buttons["Revisar"].tap()
+
+        let validation = app.staticTexts["transfer-validation-error"]
+        XCTAssertTrue(validation.waitForExistence(timeout: 4))
+        XCTAssertTrue(validation.label.contains("Saldo insuficiente"))
+        XCTAssertEqual(amountField.value as? String, "3000")
+        app.buttons["Cancelar"].tap()
+        XCTAssertTrue(app.staticTexts["M$ 2.450,00"].waitForExistence(timeout: 5))
     }
 
     func testPlayerSetupValidatesDuplicateNamesAndSupportsAddingPlayers() throws {
