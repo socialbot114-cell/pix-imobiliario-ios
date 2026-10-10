@@ -19,15 +19,15 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | Semana | Marco | Entregas | Saída esperada | Estado |
 |---|---|---|---|---|
 | 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
-| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 380065 |
-| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 12 XCTest passaram no run 380065 |
-| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 10 testes de UI passaram no run 380065 |
-| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 380065 |
-| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 380065 |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 380626 |
+| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 12 XCTest passaram no run 380626 |
+| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 12 testes de UI passaram no run 380626 |
+| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 380626 |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 380626 |
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros, privacidade local, apagar dados e estados vazios | MVP P0 funcional e polido | Resumo, disclosure local, exclusão, Reduzir Movimento, ícone e Dynamic Type implementados; auditoria VoiceOver manual pendente |
 | 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | 11 unit tests + 8 UI tests passaram no run 379686 |
-| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Doze prints revistos; run 380065 verde; onboarding e ranking capturados; `.app` publicado |
-| 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | Build e 12+10 testes verdes; resta auditoria VoiceOver em aparelho e decidir assinatura/TestFlight |
+| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Quinze prints revistos; run 380626 verde; acesso demo e recibo PIX capturados; `.app` publicado |
+| 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | Build e 12+12 testes verdes; resta auditoria VoiceOver em aparelho e decidir assinatura/TestFlight |
 
 > As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
 
@@ -121,7 +121,7 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 | 2026-10-09 | Rodada 18 · semântica VoiceOver | A posição de cada jogador no tabuleiro e o jogador ativo agora são anunciados semanticamente; UI tests verificam valores e rótulos | Run [37995845602](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/37995845602) passou: 11 unit tests + 9 UI tests; artefatos de app, capturas e XCTest publicados. | Auditoria manual de navegação/rotor VoiceOver em iPhone; preparar assinatura se houver TestFlight |
 | 2026-10-09 | Rodada 19 · onboarding, jogadores e ranking | Criação em duas etapas; nomes distintos; cor/peça por jogador; ranking ao vivo e final com saldo/imóveis separados, empates compartilhados; workflow captura as três novas telas | Run [38004174524](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38004174524) passou: 12 unit tests + 10 UI tests e 12 capturas. Revisão visual apontou que o cartão do ranking empurrava as ações principais para baixo. | Reposicionar a prévia abaixo dos atalhos e reduzir a altura das linhas do painel |
 | 2026-10-09 | Rodada 20 · hierarquia do painel | Prévia compacta do ranking movida para depois dos atalhos, mantendo PIX/Banco/Cobrar visíveis antes da classificação | Run [38006511339](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38006511339) passou: 12 unit tests + 10 UI tests, build e 12 capturas; o painel revisado mostra os atalhos antes do ranking. | Auditoria VoiceOver em iPhone e decisão de assinatura/TestFlight |
-| 2026-10-09 | Rodada 21 · acesso de demonstração e comprovante PIX | Prévia fintech opcional sem credenciais; progresso da operação local, comprovante com saldos e referência; três novas capturas | Implementação e testes adicionados; run de validação pendente. | Confirmar 12 unit tests + 12 UI tests e revisar acesso, processamento e comprovante |
+| 2026-10-09 | Rodada 21 · acesso de demonstração e comprovante PIX | Prévia fintech opcional sem credenciais; progresso da operação local e comprovante com saldos, horário e referência; três novas capturas | Run [38062653908](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38062653908) passou: 12 unit tests + 12 UI tests; 15 capturas revisadas e app de simulador publicado. | Auditoria manual de navegação VoiceOver em iPhone e decisão sobre assinatura/TestFlight |
 
 ### Registro detalhado da rodada 1
 
