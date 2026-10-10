@@ -92,12 +92,13 @@ O cliente local não fornece as garantias de autorização de um servidor multip
 
 ## Refinamento da experiência · plano de execução
 
-### Rodada 22 · Operações — em execução
+### Rodada 22 · Operações — concluída
+Run [38090136614](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38090136614) passou com 13 unit tests, 13 UI tests e 16 capturas. A revisão confirma nomes, avatares, motivo e saldo previsto; comprovantes podem ser reabertos do extrato com referência e horário originais.
 - [x] PIX: preencher → revisar → confirmar → comprovante.
 - [x] Revisão com avatar/cor/peça dos participantes, valor, motivo, saldo atual e saldo previsto do pagador.
 - [x] Erros inline para valor inválido, saldo insuficiente e participantes iguais; edição preserva os campos.
 - [x] Reabrir comprovantes pelo extrato usando o lançamento persistido, referência e horário originais; explicitar que saldos atuais podem ter mudado.
-- [ ] Reexecutar CI depois dos últimos testes de erro/same-player e revisar a tela de revisão do PIX; contagens esperadas: 13 unit tests + 13 UI tests, 16 capturas.
+- [x] CI verde; sucesso, erro de saldo, retorno para edição, recibo e proteção contra confirmação repetida validados por XCTest/UI tests.
 
 ### Rodada 23 · Central da mesa
 - [ ] Explicitar a conta ativa: “Você está movimentando a conta de …”.
