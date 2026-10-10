@@ -72,6 +72,7 @@ private struct TransactionReceiptView: View {
                         LabeledContent("Destino", value: transaction.toName)
                         LabeledContent("Motivo", value: transaction.description)
                         LabeledContent("Referência local", value: "MOV-\(transaction.id)")
+                            .accessibilityIdentifier("transaction-receipt-reference")
                         LabeledContent("Data e hora", value: timestamp)
                     }
                 }

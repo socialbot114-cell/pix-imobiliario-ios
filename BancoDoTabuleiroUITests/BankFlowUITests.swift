@@ -51,7 +51,7 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["transaction-row-3"].waitForExistence(timeout: 5))
         app.descendants(matching: .any)["transaction-row-3"].tap()
         XCTAssertTrue(app.navigationBars["Comprovante"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["MOV-3"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-receipt-reference"].label.contains("MOV-3"))
     }
 
     func testPlayerSetupValidatesDuplicateNamesAndSupportsAddingPlayers() throws {
