@@ -565,6 +565,19 @@ final class GameStore: ObservableObject {
             if isUITesting, arguments.contains("-visual-review-data"), let game {
                 self.game = try Self.seedVisualReviewData(repository: localRepository, game: game)
             }
+            if isUITesting, arguments.contains("-capture-pending-charge"), let game,
+               game.players.count > 1,
+               let creator = game.players.first,
+               let payer = game.players.dropFirst().first {
+                _ = try localRepository.createPaymentRequest(
+                    gameID: game.id,
+                    creatorPlayerID: creator.id,
+                    payerPlayerID: payer.id,
+                    amountMinor: 40_00,
+                    description: "Aluguel da Rua Verde"
+                )
+                self.game = try localRepository.snapshot(gameID: game.id)
+            }
         } catch {
             self.repository = nil
             errorMessage = error.localizedDescription

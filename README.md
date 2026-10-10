@@ -14,6 +14,9 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Fazer transferências internas com estado de processamento local e comprovante; criar cobranças, cadastrar e comprar propriedades e registrar aluguel.
 - Registrar créditos e pagamentos ao banco virtual (por exemplo, renda de passagem ou taxa da partida).
 - Acompanhar o ranking ao vivo no painel e consultar a classificação completa, com saldo e imóveis separados.
+- Passar rapidamente para o próximo jogador, confirmar a conta ativa e ocultar o saldo principal quando o iPhone circular pela mesa.
+- Consultar o valor das cobranças pendentes antes de pagar.
+- Definir a ordem dos jogadores e quem começa a partida.
 - Ver o resultado final após encerrar a partida; empates compartilham a mesma posição.
 - Consultar painel, extrato, carteira de imóveis e resumo visual do tabuleiro.
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.

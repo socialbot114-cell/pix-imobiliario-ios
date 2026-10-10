@@ -95,6 +95,10 @@ final class BankFlowUITests: XCTestCase {
         removePlayerButton.tap()
         XCTAssertFalse(app.textFields["player-name-3"].exists)
         XCTAssertTrue(app.staticTexts["player-count"].label.contains("2 de 6"))
+        let moveSecondUp = app.buttons["move-player-up-2"]
+        if !moveSecondUp.isHittable { app.swipeUp() }
+        moveSecondUp.tap()
+        XCTAssertTrue(app.staticTexts["starts-first-player"].exists)
 
         let firstName = app.textFields["player-name-1"]
         let secondName = app.textFields["player-name-2"]
@@ -117,6 +121,25 @@ final class BankFlowUITests: XCTestCase {
         if !continueDemo.isHittable { app.swipeUp() }
         continueDemo.tap()
         XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
+    }
+
+    func testNextPlayerAndPrimaryBalanceVisibilityControls() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-screenshot-mode"]
+        app.launch()
+
+        let activePlayer = app.descendants(matching: .any)["active-player-context"]
+        XCTAssertTrue(activePlayer.waitForExistence(timeout: 8))
+        XCTAssertTrue(activePlayer.label.contains("Ana"))
+        app.buttons["next-player-button"].tap()
+        XCTAssertTrue(activePlayer.label.contains("Bruno"))
+
+        let balance = app.staticTexts["balance-value"]
+        app.buttons["toggle-balance-visibility"].tap()
+        XCTAssertEqual(balance.label, "Saldo oculto")
+        app.buttons["toggle-balance-visibility"].tap()
+        XCTAssertTrue(balance.label.contains("M$ 2.450,00"))
     }
 
     func testTransferProcessingStateClearlyIndicatesLocalOperation() throws {
@@ -166,6 +189,7 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["create-charge-button"].tap()
 
         XCTAssertTrue(app.staticTexts["Cobranças aguardando"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["pending-charge-amount-1"].label.contains("M$ 40,00"))
         let payButton = app.buttons["Pagar"]
         if !payButton.isHittable { app.swipeUp() }
         payButton.tap()

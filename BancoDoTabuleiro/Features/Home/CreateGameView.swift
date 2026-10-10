@@ -42,7 +42,7 @@ struct CreateGameView: View {
     @State private var isCreating = false
 
     fileprivate static let tokenChoices = [
-        PlayerTokenChoice(id: "peao", name: "Peão", symbol: "pawn.fill"),
+        PlayerTokenChoice(id: "peao", name: "Peão", symbol: "figure.stand"),
         PlayerTokenChoice(id: "casa", name: "Casa", symbol: "house.fill"),
         PlayerTokenChoice(id: "torre", name: "Torre", symbol: "building.2.fill"),
         PlayerTokenChoice(id: "estrela", name: "Estrela", symbol: "star.fill"),
@@ -205,9 +205,14 @@ struct CreateGameView: View {
                 PlayerSetupCard(
                     player: playerBinding,
                     number: index + 1,
+                    isStartingPlayer: index == 0,
                     canRemove: players.count > 2,
+                    canMoveUp: index > 0,
+                    canMoveDown: index < players.count - 1,
                     focus: $focusedField,
-                    onRemove: { removePlayer(id: playerID) }
+                    onRemove: { removePlayer(id: playerID) },
+                    onMoveUp: { movePlayer(id: playerID, by: -1) },
+                    onMoveDown: { movePlayer(id: playerID, by: 1) }
                 )
             }
 
@@ -366,6 +371,13 @@ struct CreateGameView: View {
         players.removeAll { $0.id == id }
     }
 
+    private func movePlayer(id: UUID, by offset: Int) {
+        guard let index = players.firstIndex(where: { $0.id == id }) else { return }
+        let destination = index + offset
+        guard players.indices.contains(destination) else { return }
+        players.swapAt(index, destination)
+    }
+
     private func createGame() {
         guard canCreate else { return }
         let newPlayers = players.map { player in
@@ -390,9 +402,14 @@ struct CreateGameView: View {
 private struct PlayerSetupCard: View {
     @Binding var player: PlayerDraft
     let number: Int
+    let isStartingPlayer: Bool
     let canRemove: Bool
+    let canMoveUp: Bool
+    let canMoveDown: Bool
     let focus: FocusState<UUID?>.Binding
     let onRemove: () -> Void
+    let onMoveUp: () -> Void
+    let onMoveDown: () -> Void
 
     private let colors = [
         PlayerColorChoice(name: "Verde", hex: "#13845B"),
@@ -420,10 +437,18 @@ private struct PlayerSetupCard: View {
                 .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("JOGADOR \(number)")
-                        .font(.system(.caption2, design: .rounded, weight: .black))
-                        .tracking(0.9)
-                        .foregroundStyle(Palette.muted)
+                    HStack(spacing: 7) {
+                        Text("JOGADOR \(number)")
+                            .font(.system(.caption2, design: .rounded, weight: .black))
+                            .tracking(0.9)
+                            .foregroundStyle(Palette.muted)
+                        if isStartingPlayer {
+                            Text("COMEÇA")
+                                .font(.system(.caption2, design: .rounded, weight: .black))
+                                .foregroundStyle(Palette.forest)
+                                .accessibilityIdentifier("starts-first-player")
+                        }
+                    }
                     TextField("Nome do jogador \(number)", text: $player.name)
                         .textContentType(.nickname)
                         .textInputAutocapitalization(.words)
@@ -445,6 +470,29 @@ private struct PlayerSetupCard: View {
             }
 
             Rectangle().fill(Palette.line).frame(height: 1)
+
+            HStack(spacing: 7) {
+                Label(isStartingPlayer ? "Começa a partida" : "Ordem \(number)", systemImage: "arrow.turn.down.right")
+                    .font(.system(.caption, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.muted)
+                Spacer(minLength: 4)
+                Button(action: onMoveUp) {
+                    Image(systemName: "arrow.up")
+                        .frame(width: 44, height: 44)
+                        .background(Palette.canvas, in: Circle())
+                }
+                .disabled(!canMoveUp)
+                .accessibilityLabel("Mover jogador \(number) para cima")
+                .accessibilityIdentifier("move-player-up-\(number)")
+                Button(action: onMoveDown) {
+                    Image(systemName: "arrow.down")
+                        .frame(width: 44, height: 44)
+                        .background(Palette.canvas, in: Circle())
+                }
+                .disabled(!canMoveDown)
+                .accessibilityLabel("Mover jogador \(number) para baixo")
+                .accessibilityIdentifier("move-player-down-\(number)")
+            }
 
             HStack(alignment: .center, spacing: 5) {
                 Text("COR")

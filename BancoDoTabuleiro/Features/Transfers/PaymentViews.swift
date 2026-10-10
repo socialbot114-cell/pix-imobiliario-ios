@@ -214,7 +214,7 @@ struct TransferView: View {
         case "estrela": return "star.fill"
         case "carro": return "car.fill"
         case "coroa": return "crown.fill"
-        default: return "pawn.fill"
+        default: return "figure.stand"
         }
     }
 

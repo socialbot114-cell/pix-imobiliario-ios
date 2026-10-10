@@ -54,6 +54,7 @@ struct HomeView: View {
     @State private var sheet: HomeSheet?
     @State private var showFinishConfirmation = false
     @State private var showDeleteConfirmation = false
+    @State private var isPrimaryBalanceHidden = false
 
     var body: some View {
         ZStack {
@@ -317,21 +318,29 @@ struct HomeView: View {
                     .tracking(1.1)
                     .foregroundStyle(Palette.goldLight)
                 Spacer()
-                Text("MOEDA DO JOGO")
-                    .font(.system(size: 8, weight: .heavy, design: .rounded))
-                    .tracking(0.8)
-                    .foregroundStyle(Palette.card.opacity(0.68))
+                Button {
+                    isPrimaryBalanceHidden.toggle()
+                } label: {
+                    Label(isPrimaryBalanceHidden ? "MOSTRAR" : "OCULTAR", systemImage: isPrimaryBalanceHidden ? "eye" : "eye.slash")
+                        .font(.system(size: 8, weight: .heavy, design: .rounded))
+                        .tracking(0.5)
+                        .foregroundStyle(Palette.card.opacity(0.78))
+                }
+                .accessibilityLabel(isPrimaryBalanceHidden ? "Mostrar saldo principal" : "Ocultar saldo principal")
+                .accessibilityIdentifier("toggle-balance-visibility")
             }
-            Text(MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
+            Text(isPrimaryBalanceHidden ? "••••••" : MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
                 .font(.system(size: balanceFontSize, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
                 .foregroundStyle(.white)
+                .accessibilityLabel(isPrimaryBalanceHidden ? "Saldo oculto" : MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
                 .accessibilityIdentifier("balance-value")
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 7) {
                     Label(game.currentPlayer?.name ?? "Jogador", systemImage: "person.crop.circle.fill")
                         .foregroundStyle(Palette.card.opacity(0.82))
+                        .accessibilityLabel("Conta ativa: \(game.currentPlayer?.name ?? "Jogador")")
                     Text("\(game.players.count) jogadores")
                         .foregroundStyle(Palette.card.opacity(0.82))
                 }
@@ -344,6 +353,7 @@ struct HomeView: View {
                         .foregroundStyle(Palette.card.opacity(0.82))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
+                        .accessibilityLabel("Conta ativa: \(game.currentPlayer?.name ?? "Jogador")")
                     Spacer(minLength: 4)
                     Text("\(game.players.count) jogadores")
                         .foregroundStyle(Palette.card.opacity(0.82))
@@ -362,6 +372,7 @@ struct HomeView: View {
     private func playerCard(_ game: GameSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionTitle(title: "Jogadores na partida")
+            playerContextControls(game)
             if dynamicTypeSize.isAccessibilitySize {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                     ForEach(game.players) { player in
@@ -380,6 +391,49 @@ struct HomeView: View {
         }
         .padding(17)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    @ViewBuilder
+    private func playerContextControls(_ game: GameSnapshot) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 7) {
+                activePlayerLabel(game)
+                if game.status == "active" { nextPlayerButton(game) }
+            }
+        } else {
+            HStack(spacing: 10) {
+                activePlayerLabel(game)
+                Spacer(minLength: 4)
+                if game.status == "active" { nextPlayerButton(game) }
+            }
+        }
+    }
+
+    private func activePlayerLabel(_ game: GameSnapshot) -> some View {
+        Label("Conta ativa: \(game.currentPlayer?.name ?? "Jogador")", systemImage: "person.crop.circle.fill")
+            .font(.system(.caption, design: .rounded, weight: .semibold))
+            .foregroundStyle(Palette.forest)
+            .accessibilityIdentifier("active-player-context")
+    }
+
+    private func nextPlayerButton(_ game: GameSnapshot) -> some View {
+        Button {
+            selectNextPlayer(in: game)
+        } label: {
+            Label("Próximo jogador", systemImage: "arrow.right.circle.fill")
+                .font(.system(.caption, design: .rounded, weight: .bold))
+                .foregroundStyle(Palette.forest)
+                .frame(minHeight: 44)
+        }
+        .accessibilityLabel("Passar a conta para o próximo jogador")
+        .accessibilityIdentifier("next-player-button")
+    }
+
+    private func selectNextPlayer(in game: GameSnapshot) {
+        guard !game.players.isEmpty,
+              let currentID = game.currentPlayer?.id,
+              let currentIndex = game.players.firstIndex(where: { $0.id == currentID }) else { return }
+        store.selectActivePlayer(game.players[(currentIndex + 1) % game.players.count])
     }
 
     private func playerButton(_ player: GamePlayer, game: GameSnapshot, accessibilitySize: Bool) -> some View {
@@ -415,27 +469,57 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 11) {
             SectionTitle(title: "Cobranças aguardando")
             ForEach(requests) { request in
-                HStack(spacing: 12) {
-                    Image(systemName: "bell.badge.fill").foregroundStyle(Palette.burgundy)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("\(request.payerName) deve pagar a \(request.creatorName)")
-                            .font(.system(.caption, design: .rounded, weight: .semibold))
-                            .foregroundStyle(Palette.ink)
-                        Text(request.description)
-                            .font(.system(.caption2, design: .rounded))
-                            .foregroundStyle(Palette.muted)
-                    }
-                    Spacer(minLength: 4)
-                    Button("Pagar") { store.payCharge(request) }
-                        .font(.system(.caption, design: .rounded, weight: .bold))
-                        .foregroundStyle(Palette.forest)
-                }
-                .padding(13)
-                .background(Palette.canvas, in: RoundedRectangle(cornerRadius: 15))
+                pendingPaymentRow(request)
             }
         }
         .padding(17)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 23))
+    }
+
+    @ViewBuilder
+    private func pendingPaymentRow(_ request: PaymentRequest) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "bell.badge.fill").foregroundStyle(Palette.burgundy)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(request.payerName) paga a \(request.creatorName)")
+                        .font(.system(.caption, design: .rounded, weight: .semibold))
+                        .foregroundStyle(Palette.ink)
+                    Text(request.description)
+                        .font(.system(.caption2, design: .rounded))
+                        .foregroundStyle(Palette.muted)
+                }
+                Spacer(minLength: 4)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Button("Pagar") { store.payCharge(request) }
+                        .font(.system(.caption, design: .rounded, weight: .bold))
+                        .foregroundStyle(Palette.forest)
+                        .frame(minHeight: 44)
+                        .accessibilityIdentifier("pay-charge-\(request.id)")
+                }
+            }
+
+            HStack {
+                Text("Valor da cobrança")
+                    .font(.system(.caption2, design: .rounded, weight: .medium))
+                    .foregroundStyle(Palette.muted)
+                Spacer()
+                Text(MoneyFormat.string(request.amountMinor))
+                    .font(.system(.subheadline, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.burgundy)
+                    .accessibilityIdentifier("pending-charge-amount-\(request.id)")
+            }
+
+            if dynamicTypeSize.isAccessibilitySize {
+                Button("Pagar esta cobrança") { store.payCharge(request) }
+                    .font(.system(.subheadline, design: .rounded, weight: .bold))
+                    .foregroundStyle(Palette.forest)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .accessibilityIdentifier("pay-charge-\(request.id)")
+            }
+        }
+        .padding(13)
+        .background(Palette.canvas, in: RoundedRectangle(cornerRadius: 15))
     }
 
     private func rankingCard(_ game: GameSnapshot) -> some View {
@@ -510,7 +594,7 @@ struct HomeView: View {
         case "estrela": return "star.fill"
         case "casa": return "house.fill"
         case "carro": return "car.fill"
-        default: return "pawn.fill"
+        default: return "figure.stand"
         }
     }
 }
@@ -768,7 +852,7 @@ private struct BoardIllustration: View {
                                 }
                             }
                         HStack(spacing: 20) {
-                            token("pawn.fill", color: Color(hex: 0xD9483B), angle: -12)
+                            token("figure.stand", color: Color(hex: 0xD9483B), angle: -12)
                             token("house.fill", color: Color(hex: 0xE2B642), angle: 8)
                             token("building.2.fill", color: Color(hex: 0x4B78D5), angle: -5)
                         }

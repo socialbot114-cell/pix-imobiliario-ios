@@ -101,15 +101,15 @@ Run [38090136614](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 - [x] CI verde; sucesso, erro de saldo, retorno para edição, recibo e proteção contra confirmação repetida validados por XCTest/UI tests.
 
 ### Rodada 23 · Central da mesa
-- [ ] Explicitar a conta ativa: “Você está movimentando a conta de …”.
-- [ ] Próximo jogador com seleção persistida e passagem clara do iPhone.
-- [ ] Mostrar/ocultar saldo com rótulos acessíveis.
-- [ ] Cobranças pendentes com valor, pagador e recebedor antes de pagar.
+- [x] Explicitar a conta ativa e oferecer “Próximo jogador” com seleção persistida.
+- [x] Mostrar/ocultar o saldo principal com rótulos acessíveis.
+- [x] Cobranças pendentes mostram valor, pagador e recebedor antes de pagar.
 - [ ] Manter atalhos prioritários, ranking compacto e acesso ao detalhe das movimentações.
-- [ ] Cadastro: escolher quem começa, reorganizar ordem e destacar o primeiro jogador.
-- [ ] Nome claramente editável; teclado com Próximo/Concluir; combinações de cor/peça distinguíveis.
-- [ ] Corrigir Peão vazio e alinhar identidade visual entre cadastro, painel e tabuleiro.
-- [ ] Aceite: troca de contexto sem operação acidental; seis jogadores e nomes longos utilizáveis.
+- [x] Cadastro permite reorganizar ordem, identifica quem começa e exibe ícone de Peão visível.
+- [ ] Refinar navegação de teclado e validar seis jogadores/nomes longos com Dynamic Type.
+- [ ] Aceite: verificar passagem de turno sem operação acidental e revisão visual no simulador.
+
+Implementado localmente em `HomeView.swift` e `CreateGameView.swift`; testes e capturas da rodada ainda pendentes no próximo run.
 
 ### Rodada 24 · Entrada e histórico
 - [ ] Entrada com Criar partida, Continuar partida e Explorar demonstração.
