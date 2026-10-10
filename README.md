@@ -9,8 +9,9 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Criar partida local para 2–6 jogadores.
 - Configurar a partida em duas etapas: nome e saldo inicial, depois cadastro visual dos jogadores com nome, cor e peça.
 - Validar nomes vazios ou repetidos; adicionar e remover participantes de 2 a 6 antes de iniciar.
+- Prévia opcional de acesso fintech em modo demonstração, sem coletar nem enviar credenciais.
 - Distribuir dinheiro inicial e registrar o livro de lançamentos.
-- Fazer transferências internas, criar cobranças, cadastrar e comprar propriedades e registrar aluguel.
+- Fazer transferências internas com estado de processamento local e comprovante; criar cobranças, cadastrar e comprar propriedades e registrar aluguel.
 - Registrar créditos e pagamentos ao banco virtual (por exemplo, renda de passagem ou taxa da partida).
 - Acompanhar o ranking ao vivo no painel e consultar a classificação completa, com saldo e imóveis separados.
 - Ver o resultado final após encerrar a partida; empates compartilham a mesma posição.

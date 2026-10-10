@@ -1,5 +1,16 @@
 import SwiftUI
 
+private struct TransferReceiptDetails {
+    let fromName: String
+    let toName: String
+    let amountMinor: Int64
+    let description: String
+    let reference: String
+    let timestamp: String
+    let fromBalanceMinor: Int64
+    let toBalanceMinor: Int64
+}
+
 struct TransferView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
@@ -7,10 +18,84 @@ struct TransferView: View {
     @State private var toPlayerID: Int64 = 0
     @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "150" : ""
     @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Aluguel da Rua Verde" : ""
+    @State private var isProcessing = ProcessInfo.processInfo.arguments.contains("-capture-transfer-processing")
+    @State private var receipt: TransferReceiptDetails?
 
     private var players: [GamePlayer] { store.game?.players ?? [] }
 
     var body: some View {
+        Group {
+            if let receipt {
+                receiptView(receipt)
+            } else {
+                transferForm
+            }
+        }
+        .background(Palette.canvas)
+        .navigationTitle(receipt == nil ? "PIX Imobiliário" : "Comprovante")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if receipt == nil {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                        .foregroundStyle(Palette.forest)
+                        .disabled(isProcessing)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        confirmTransfer()
+                    } label: {
+                        if isProcessing {
+                            ProgressView().tint(Palette.forest)
+                        } else {
+                            Text("Confirmar")
+                        }
+                    }
+                    .fontWeight(.bold)
+                    .foregroundStyle(Palette.forest)
+                    .disabled(isProcessing)
+                    .accessibilityIdentifier("confirm-transfer-button")
+                }
+            } else {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fechar") { dismiss() }
+                        .foregroundStyle(Palette.forest)
+                }
+            }
+        }
+        .overlay {
+            if isProcessing && receipt == nil {
+                ZStack {
+                    Color.black.opacity(0.28).ignoresSafeArea()
+                    VStack(spacing: 13) {
+                        ProgressView().tint(Palette.forest).scaleEffect(1.2)
+                        Text("Processando PIX local…")
+                            .font(.system(.headline, design: .rounded, weight: .bold))
+                            .foregroundStyle(Palette.ink)
+                        Text("Salvando a transferência no extrato desta partida.")
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundStyle(Palette.muted)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(24)
+                    .frame(maxWidth: 300)
+                    .background(Palette.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("transfer-processing-state")
+                }
+                .transition(.opacity)
+            }
+        }
+        .interactiveDismissDisabled(isProcessing)
+        .onAppear {
+            setDefaultPlayers()
+            if ProcessInfo.processInfo.arguments.contains("-capture-transfer-receipt") {
+                confirmTransfer()
+            }
+        }
+    }
+
+    private var transferForm: some View {
         Form {
             Section {
                 playerPicker(title: "Quem paga", selection: $fromPlayerID)
@@ -40,19 +125,90 @@ struct TransferView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Palette.canvas)
-        .navigationTitle("PIX Imobiliário")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() }.foregroundStyle(Palette.forest) }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Confirmar") { confirmTransfer() }
-                    .fontWeight(.bold)
-                    .foregroundStyle(Palette.forest)
-                    .accessibilityIdentifier("confirm-transfer-button")
+    }
+
+    private func receiptView(_ receipt: TransferReceiptDetails) -> some View {
+        ScrollView {
+            VStack(spacing: 17) {
+                ZStack {
+                    Circle().fill(Palette.success.opacity(0.12)).frame(width: 78, height: 78)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 46, weight: .medium))
+                        .foregroundStyle(Palette.success)
+                }
+                .padding(.top, 14)
+
+                VStack(spacing: 5) {
+                    Text("Transferência concluída")
+                        .font(.system(.title2, design: .serif, weight: .bold))
+                        .foregroundStyle(Palette.ink)
+                        .accessibilityIdentifier("transfer-receipt-title")
+                    Text(MoneyFormat.string(receipt.amountMinor))
+                        .font(.system(.largeTitle, design: .rounded, weight: .black))
+                        .foregroundStyle(Palette.forest)
+                        .accessibilityIdentifier("transfer-receipt-amount")
+                }
+
+                PremiumCard(padding: 17) {
+                    VStack(spacing: 13) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("PAGADOR").font(.system(.caption2, design: .rounded, weight: .black)).foregroundStyle(Palette.muted)
+                                Text(receipt.fromName).font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(Palette.ink)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.right").foregroundStyle(Palette.gold)
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("RECEBEDOR").font(.system(.caption2, design: .rounded, weight: .black)).foregroundStyle(Palette.muted)
+                                Text(receipt.toName).font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(Palette.ink)
+                            }
+                        }
+
+                        Rectangle().fill(Palette.line).frame(height: 1)
+
+                        LabeledContent("Motivo", value: receipt.description)
+                        LabeledContent("Referência local", value: receipt.reference)
+                        LabeledContent("Data e hora", value: receipt.timestamp)
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    balanceResult(name: receipt.fromName, amount: receipt.fromBalanceMinor, icon: "arrow.up.right")
+                    balanceResult(name: receipt.toName, amount: receipt.toBalanceMinor, icon: "arrow.down.left")
+                }
+
+                Label("Registrado somente no extrato desta partida neste iPhone. Nenhum PIX oficial foi enviado.", systemImage: "iphone")
+                    .font(.system(.caption, design: .rounded))
+                    .foregroundStyle(Palette.muted)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("transfer-receipt-local-state")
+
+                Button("Voltar ao painel") { dismiss() }
+                    .buttonStyle(PrimaryActionStyle())
+                    .accessibilityIdentifier("transfer-receipt-close")
             }
+            .padding(20)
         }
-        .onAppear { setDefaultPlayers() }
+        .background(Palette.canvas.ignoresSafeArea())
+    }
+
+    private func balanceResult(name: String, amount: Int64, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Label(name, systemImage: icon)
+                .font(.system(.caption, design: .rounded, weight: .semibold))
+                .foregroundStyle(Palette.muted)
+                .lineLimit(1)
+            Text(MoneyFormat.string(amount))
+                .font(.system(.subheadline, design: .rounded, weight: .bold))
+                .foregroundStyle(Palette.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(13)
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 16))
     }
 
     @ViewBuilder
@@ -73,13 +229,51 @@ struct TransferView: View {
     }
 
     private func confirmTransfer() {
+        guard !isProcessing, receipt == nil else { return }
         guard let amountMinor = MoneyFormat.minorUnits(from: amount) else {
             store.errorMessage = GameStoreError.invalidAmount.localizedDescription
             return
         }
+        guard let game = store.game,
+              let payer = game.players.first(where: { $0.id == fromPlayerID }),
+              let receiver = game.players.first(where: { $0.id == toPlayerID }) else {
+            store.errorMessage = GameStoreError.noActiveGame.localizedDescription
+            return
+        }
+        let memo = description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "PIX Imobiliário" : description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existingTransactionIDs = Set(game.transactions.map(\.id))
         store.clearError()
-        store.transfer(from: fromPlayerID, to: toPlayerID, amount: amountMinor, description: description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "PIX Imobiliário" : description)
-        if store.errorMessage == nil { dismiss() }
+        isProcessing = true
+        Task { @MainActor in
+            await Task.yield()
+            store.transfer(from: fromPlayerID, to: toPlayerID, amount: amountMinor, description: memo)
+            guard store.errorMessage == nil,
+                  let updatedGame = store.game,
+                  let updatedPayer = updatedGame.players.first(where: { $0.id == fromPlayerID }),
+                  let updatedReceiver = updatedGame.players.first(where: { $0.id == toPlayerID }) else {
+                isProcessing = false
+                return
+            }
+            let transaction = updatedGame.transactions.first {
+                !existingTransactionIDs.contains($0.id)
+                    && $0.kind == "transfer"
+                    && $0.fromPlayerID == fromPlayerID
+                    && $0.toPlayerID == toPlayerID
+                    && $0.amountMinor == amountMinor
+            }
+            let transactionDate = transaction.flatMap { ISO8601DateFormatter().date(from: $0.createdAt) } ?? Date.now
+            receipt = TransferReceiptDetails(
+                fromName: updatedPayer.name,
+                toName: updatedReceiver.name,
+                amountMinor: amountMinor,
+                description: memo,
+                reference: transaction.map { "PIX-\($0.id)" } ?? "PIX local",
+                timestamp: transactionDate.formatted(date: .abbreviated, time: .shortened),
+                fromBalanceMinor: updatedPayer.balanceMinor,
+                toBalanceMinor: updatedReceiver.balanceMinor
+            )
+            isProcessing = false
+        }
     }
 }
 

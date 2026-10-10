@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, bank, charge, privacy, leaderboard
+    case createGame, transfer, bank, charge, privacy, leaderboard, demoAccess
     var id: String { rawValue }
 }
 
@@ -88,9 +88,11 @@ struct HomeView: View {
                     } else {
                         EmptySection(title: "Ranking", detail: "Crie uma partida para ver a classificação.")
                     }
+                case .demoAccess:
+                    DemoAccessView { sheet = .createGame }
                 }
             }
-            .presentationDetents(selected == .createGame || selected == .privacy || selected == .leaderboard ? [.large] : [.medium, .large])
+            .presentationDetents(selected == .createGame || selected == .transfer || selected == .privacy || selected == .leaderboard || selected == .demoAccess ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
@@ -108,7 +110,9 @@ struct HomeView: View {
         }
         .onAppear {
             let arguments = ProcessInfo.processInfo.arguments
-            if arguments.contains("-capture-transfer") {
+            if arguments.contains("-capture-transfer")
+                || arguments.contains("-capture-transfer-processing")
+                || arguments.contains("-capture-transfer-receipt") {
                 sheet = .transfer
             } else if arguments.contains("-capture-bank") {
                 sheet = .bank
@@ -120,6 +124,8 @@ struct HomeView: View {
                 sheet = .createGame
             } else if arguments.contains("-capture-ranking") {
                 sheet = .leaderboard
+            } else if arguments.contains("-capture-demo-access") {
+                sheet = .demoAccess
             }
         }
     }
@@ -195,6 +201,15 @@ struct HomeView: View {
             }
             .buttonStyle(PrimaryActionStyle())
             .accessibilityIdentifier("create-game-button")
+
+            Button { sheet = .demoAccess } label: {
+                Label("Prévia de acesso fintech", systemImage: "person.crop.circle.badge.checkmark")
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.forest)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+            }
+            .accessibilityIdentifier("demo-access-preview")
 
             Button { sheet = .privacy } label: {
                 Label("Privacidade e dados", systemImage: "lock.shield")
@@ -561,6 +576,96 @@ private struct PrivacyAndDataView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
+    }
+}
+
+private struct DemoAccessView: View {
+    @Environment(\.dismiss) private var dismiss
+    let onContinue: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle().fill(Palette.forest.opacity(0.08)).frame(width: 88, height: 88)
+                    Image(systemName: "building.columns.fill")
+                        .font(.system(size: 37, weight: .medium))
+                        .foregroundStyle(Palette.forest)
+                }
+                .padding(.top, 18)
+
+                VStack(spacing: 6) {
+                    Text("Acesso demonstrativo")
+                        .font(.system(.largeTitle, design: .serif, weight: .bold))
+                        .foregroundStyle(Palette.ink)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("demo-access-title")
+                    Text("Uma prévia visual de acesso fintech para sua mesa local.")
+                        .font(.system(.subheadline, design: .rounded))
+                        .foregroundStyle(Palette.muted)
+                        .multilineTextAlignment(.center)
+                }
+
+                PremiumCard {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle().fill(Palette.forest).frame(width: 50, height: 50)
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundStyle(Palette.goldLight)
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("PERFIL DE DEMONSTRAÇÃO")
+                                    .font(.system(.caption2, design: .rounded, weight: .black))
+                                    .tracking(0.7)
+                                    .foregroundStyle(Palette.muted)
+                                Text("Anfitrião local")
+                                    .font(.system(.headline, design: .rounded, weight: .bold))
+                                    .foregroundStyle(Palette.ink)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 23))
+                                .foregroundStyle(Palette.success)
+                        }
+
+                        Rectangle().fill(Palette.line).frame(height: 1)
+
+                        LabeledContent("Acesso", value: "Neste iPhone")
+                        LabeledContent("Conexão", value: "Offline")
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Mock visual: não solicita e-mail nem senha.", systemImage: "lock.shield")
+                    Label("Nenhuma credencial é enviada ou armazenada.", systemImage: "wifi.slash")
+                        .accessibilityIdentifier("demo-no-credentials")
+                    Label("M$ é fictício e só existe nesta partida.", systemImage: "banknote")
+                }
+                .font(.system(.subheadline, design: .rounded, weight: .medium))
+                .foregroundStyle(Palette.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(17)
+                .background(Palette.card, in: RoundedRectangle(cornerRadius: 20))
+
+                Button(action: onContinue) {
+                    Label("Acessar demonstração", systemImage: "arrow.right")
+                }
+                .buttonStyle(PrimaryActionStyle())
+                .accessibilityIdentifier("demo-access-continue")
+            }
+            .padding(20)
+        }
+        .background(Palette.canvas.ignoresSafeArea())
+        .navigationTitle("Acesso")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Fechar") { dismiss() }
+                    .foregroundStyle(Palette.forest)
+            }
+        }
     }
 }
 

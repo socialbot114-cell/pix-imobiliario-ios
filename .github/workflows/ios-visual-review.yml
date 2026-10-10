@@ -131,6 +131,10 @@ jobs:
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data
             elif [ "$route" = transfer ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer
+            elif [ "$route" = transfer-processing ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer-processing
+            elif [ "$route" = transfer-receipt ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-transfer-receipt
             elif [ "$route" = bank ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-bank
             elif [ "$route" = charge ]; then
@@ -143,6 +147,8 @@ jobs:
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-create-game -capture-player-setup
             elif [ "$route" = ranking ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-ranking
+            elif [ "$route" = demo-access ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-demo-access
             elif [ "$route" = large-text ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL
             else
@@ -163,6 +169,9 @@ jobs:
           capture 10-onboarding-game create-game
           capture 11-onboarding-players player-setup
           capture 12-ranking ranking
+          capture 13-demo-access demo-access
+          capture 14-transfer-processing transfer-processing
+          capture 15-transfer-receipt transfer-receipt
 
       - name: Build visual contact sheet
         if: always() && steps.build.outcome == 'success'

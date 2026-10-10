@@ -32,6 +32,12 @@ final class BankFlowUITests: XCTestCase {
         amountField.typeText("50")
         app.buttons["Confirmar"].tap()
 
+        XCTAssertTrue(app.staticTexts["transfer-receipt-title"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["transfer-receipt-amount"].label, "M$ 50,00")
+        XCTAssertTrue(app.descendants(matching: .any)["transfer-receipt-local-state"].label.contains("Nenhum PIX oficial"))
+        let closeReceipt = app.buttons["transfer-receipt-close"]
+        if !closeReceipt.isHittable { app.swipeUp() }
+        closeReceipt.tap()
         XCTAssertTrue(app.staticTexts["M$ 2.400,00"].waitForExistence(timeout: 5))
         openLeaderboard()
         XCTAssertTrue(app.descendants(matching: .any)["leaderboard-row-1"].label.contains("2º"))
@@ -70,6 +76,31 @@ final class BankFlowUITests: XCTestCase {
         secondName.typeText("ana")
         XCTAssertFalse(createButton.isEnabled)
         XCTAssertTrue(app.descendants(matching: .any)["setup-validation-message"].exists)
+    }
+
+    func testDemoAccessMockIsOptionalAndDoesNotRequestCredentials() throws {
+        app.buttons["demo-access-preview"].tap()
+        XCTAssertTrue(app.navigationBars["Acesso"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["demo-access-title"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["demo-no-credentials"].exists)
+        XCTAssertEqual(app.textFields.count, 0)
+
+        let continueDemo = app.buttons["demo-access-continue"]
+        if !continueDemo.isHittable { app.swipeUp() }
+        continueDemo.tap()
+        XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
+    }
+
+    func testTransferProcessingStateClearlyIndicatesLocalOperation() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-screenshot-mode", "-capture-transfer-processing"]
+        app.launch()
+
+        let processingState = app.descendants(matching: .any)["transfer-processing-state"]
+        XCTAssertTrue(processingState.waitForExistence(timeout: 8))
+        XCTAssertTrue(processingState.label.contains("Processando PIX local"))
+        XCTAssertFalse(app.buttons["confirm-transfer-button"].isEnabled)
     }
 
     func testPremiumBoardTabIsReachable() throws {
