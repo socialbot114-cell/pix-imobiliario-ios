@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, bank, charge, privacy, leaderboard, demoAccess
+    case createGame, transfer, bank, charge, privacy, leaderboard, demoAccess, gameHistory
     var id: String { rawValue }
 }
 
@@ -91,9 +91,11 @@ struct HomeView: View {
                     }
                 case .demoAccess:
                     DemoAccessView { sheet = .createGame }
+                case .gameHistory:
+                    GameHistoryView()
                 }
             }
-            .presentationDetents(selected == .createGame || selected == .transfer || selected == .privacy || selected == .leaderboard || selected == .demoAccess ? [.large] : [.medium, .large])
+            .presentationDetents(selected == .createGame || selected == .transfer || selected == .privacy || selected == .leaderboard || selected == .demoAccess || selected == .gameHistory ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
@@ -128,6 +130,8 @@ struct HomeView: View {
                 sheet = .leaderboard
             } else if arguments.contains("-capture-demo-access") {
                 sheet = .demoAccess
+            } else if arguments.contains("-capture-game-history") {
+                sheet = .gameHistory
             }
         }
     }
@@ -246,6 +250,7 @@ struct HomeView: View {
                 Spacer()
                 Menu {
                     Button("Nova partida", systemImage: "plus") { sheet = .createGame }
+                    Button("Partidas salvas", systemImage: "clock.arrow.circlepath") { sheet = .gameHistory }
                     Button("Privacidade e dados", systemImage: "lock.shield") { sheet = .privacy }
                     Button("Apagar dados locais", systemImage: "trash", role: .destructive) { showDeleteConfirmation = true }
                     if game.status == "active" {

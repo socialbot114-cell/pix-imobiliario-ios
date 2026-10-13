@@ -36,6 +36,22 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         }
     }
 
+    func testAllGamesListsNewestFirstAndIncludesFinishedGames() throws {
+        try repository.closeGame(gameID: game.id)
+        _ = try repository.createGame(
+            name: "Mesa nova",
+            startingBalanceMinor: 500_00,
+            players: [
+                NewPlayer(name: "Jo", colorHex: "#13845B", token: "peao"),
+                NewPlayer(name: "Lu", colorHex: "#D9483B", token: "torre")
+            ]
+        )
+
+        let games = try repository.allGames()
+        XCTAssertEqual(games.map(\.name), ["Mesa nova", "Teste local"])
+        XCTAssertEqual(games.map(\.status), ["active", "finished"])
+    }
+
     func testStandingsSeparateCashFromPropertiesAndShareTiedRanks() throws {
         let initialStandings = game.standings
         XCTAssertEqual(initialStandings.map(\.rank), [1, 1])

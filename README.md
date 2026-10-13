@@ -18,6 +18,7 @@ App iOS local-first para controlar partidas físicas de jogos imobiliários. Sal
 - Consultar o valor das cobranças pendentes antes de pagar.
 - Definir a ordem dos jogadores e quem começa a partida.
 - Ver o resultado final após encerrar a partida; empates compartilham a mesma posição.
+- Consultar partidas ativas e encerradas, retomar uma mesa local e compartilhar o resumo final.
 - Consultar painel, extrato, carteira de imóveis e resumo visual do tabuleiro.
 - Tabuleiro 3D original em Blender/USDZ com fallback SceneKit para desenvolvimento e testes.
 - Posição visual de cada peça salva localmente e retomada ao reabrir a partida.

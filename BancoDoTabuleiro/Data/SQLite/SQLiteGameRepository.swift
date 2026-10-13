@@ -33,6 +33,17 @@ final class SQLiteGameRepository {
         return try snapshot(gameID: id)
     }
 
+    func allGames() throws -> [GameSnapshot] {
+        let gameIDs = try query("SELECT id FROM games ORDER BY id DESC", []) { row in
+            sqlite3_column_int64(row, 0)
+        }
+        var games: [GameSnapshot] = []
+        for gameID in gameIDs {
+            games.append(try snapshot(gameID: gameID))
+        }
+        return games
+    }
+
     @discardableResult
     func createGame(name: String, startingBalanceMinor: Int64, players: [NewPlayer]) throws -> GameSnapshot {
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -529,8 +540,10 @@ final class SQLiteGameRepository {
 @MainActor
 final class GameStore: ObservableObject {
     @Published private(set) var game: GameSnapshot?
+    @Published private(set) var savedGames: [GameSnapshot] = []
     @Published var errorMessage: String?
     private var repository: SQLiteGameRepository?
+    private static let selectedGameIDKey = "banco-do-tabuleiro.selected-game-id"
 
     init(repository: SQLiteGameRepository? = nil) {
         let arguments = ProcessInfo.processInfo.arguments
@@ -549,7 +562,13 @@ final class GameStore: ObservableObject {
                 localRepository = try SQLiteGameRepository(databaseURL: isUITesting ? testURL : nil)
             }
             self.repository = localRepository
-            game = try localRepository.latestGame()
+            let preferredGameID = UserDefaults.standard.integer(forKey: Self.selectedGameIDKey)
+            if !isUITesting, preferredGameID > 0,
+               let preferredGame = try? localRepository.snapshot(gameID: Int64(preferredGameID)) {
+                game = preferredGame
+            } else {
+                game = try localRepository.latestGame()
+            }
             if isUITesting, game == nil, arguments.contains("-screenshot-mode") {
                 game = try localRepository.createGame(
                     name: "Noite de Jogo",
@@ -578,6 +597,22 @@ final class GameStore: ObservableObject {
                 )
                 self.game = try localRepository.snapshot(gameID: game.id)
             }
+            if isUITesting, arguments.contains("-capture-game-history"), let game {
+                let previousGame = try localRepository.createGame(
+                    name: "Partida anterior",
+                    startingBalanceMinor: 245_000,
+                    players: [
+                        NewPlayer(name: "Lia", colorHex: "#13845B", token: "peao"),
+                        NewPlayer(name: "Rui", colorHex: "#D9483B", token: "torre")
+                    ]
+                )
+                try localRepository.closeGame(gameID: previousGame.id)
+                self.game = try localRepository.snapshot(gameID: game.id)
+            }
+            savedGames = try localRepository.allGames()
+            if !isUITesting, let game {
+                UserDefaults.standard.set(game.id, forKey: Self.selectedGameIDKey)
+            }
         } catch {
             self.repository = nil
             errorMessage = error.localizedDescription
@@ -586,8 +621,29 @@ final class GameStore: ObservableObject {
 
     func createGame(name: String, startingBalanceMinor: Int64, players: [NewPlayer]) {
         guard let repository else { errorMessage = "O banco local não está disponível."; return }
-        do { game = try repository.createGame(name: name, startingBalanceMinor: startingBalanceMinor, players: players); errorMessage = nil }
+        do {
+            let createdGame = try repository.createGame(name: name, startingBalanceMinor: startingBalanceMinor, players: players)
+            game = createdGame
+            savedGames = try repository.allGames()
+            if !ProcessInfo.processInfo.arguments.contains("-ui-testing") {
+                UserDefaults.standard.set(createdGame.id, forKey: Self.selectedGameIDKey)
+            }
+            errorMessage = nil
+        }
         catch { errorMessage = error.localizedDescription }
+    }
+
+    func selectGame(id: Int64) {
+        guard let repository else { errorMessage = "O banco local não está disponível."; return }
+        do {
+            game = try repository.snapshot(gameID: id)
+            if !ProcessInfo.processInfo.arguments.contains("-ui-testing") {
+                UserDefaults.standard.set(id, forKey: Self.selectedGameIDKey)
+            }
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func transfer(from: Int64, to: Int64, amount: Int64, description: String) {
@@ -655,12 +711,23 @@ final class GameStore: ObservableObject {
 
     func deleteAllGames() {
         guard let repository else { errorMessage = "O banco local não está disponível."; return }
-        do { try repository.deleteAllGames(); game = nil; errorMessage = nil }
+        do {
+            try repository.deleteAllGames()
+            game = nil
+            savedGames = []
+            UserDefaults.standard.removeObject(forKey: Self.selectedGameIDKey)
+            errorMessage = nil
+        }
         catch { errorMessage = error.localizedDescription }
     }
 
     func refresh() {
-        do { if let game, let repository { self.game = try repository.snapshot(gameID: game.id) } }
+        do {
+            if let game, let repository {
+                self.game = try repository.snapshot(gameID: game.id)
+                savedGames = try repository.allGames()
+            }
+        }
         catch { errorMessage = error.localizedDescription }
     }
 

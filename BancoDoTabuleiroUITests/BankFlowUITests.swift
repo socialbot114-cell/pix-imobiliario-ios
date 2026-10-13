@@ -143,6 +143,39 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(balance.label.contains("M$ 2.450,00"))
     }
 
+    func testSavedGameHistoryResumesSpecificActiveGame() throws {
+        createGameWithPlayers()
+        app.buttons["select-player-2"].tap()
+        app.buttons["Opções da partida"].tap()
+        app.buttons["Nova partida"].tap()
+        finishGameSetup(first: "Carla", second: "Diego")
+
+        app.buttons["Opções da partida"].tap()
+        app.buttons["Partidas salvas"].tap()
+        XCTAssertTrue(app.navigationBars["Partidas"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["saved-game-1"].exists)
+        XCTAssertTrue(app.buttons["saved-game-2"].exists)
+
+        let originalGame = app.buttons["saved-game-1"]
+        if !originalGame.isHittable { app.swipeUp() }
+        originalGame.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["active-player-context"].label.contains("Bruno"))
+    }
+
+    func testFinishedGameHistoryOffersShareableSummary() throws {
+        createGameWithPlayers()
+        app.buttons["Opções da partida"].tap()
+        app.buttons["Encerrar partida"].tap()
+        app.buttons["Encerrar partida"].tap()
+        XCTAssertTrue(app.staticTexts["Resultado final"].waitForExistence(timeout: 6))
+
+        app.buttons["Opções da partida"].tap()
+        app.buttons["Partidas salvas"].tap()
+        let shareButton = app.descendants(matching: .any)["share-game-1"]
+        XCTAssertTrue(shareButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["saved-game-1"].label.contains("Ver resultado"))
+    }
+
     func testSixPlayerRosterRemainsScrollableAtAccessibilityTextSize() throws {
         app.terminate()
         app = XCUIApplication()
@@ -308,6 +341,10 @@ final class BankFlowUITests: XCTestCase {
 
     private func createGameWithPlayers(first: String = "Ana", second: String = "Bruno") {
         app.buttons["create-game-button"].tap()
+        finishGameSetup(first: first, second: second)
+    }
+
+    private func finishGameSetup(first: String, second: String) {
         XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
         app.buttons["continue-to-players"].tap()
 

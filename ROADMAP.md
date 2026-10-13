@@ -19,15 +19,15 @@ Produto iOS local-first para acompanhar partidas físicas de jogos imobiliários
 | Semana | Marco | Entregas | Saída esperada | Estado |
 |---|---|---|---|---|
 | 0 | Produto e arquitetura | Escopo P0, identidade, regras de partida, arquitetura SQLite/CI | Decisões registradas neste documento | Concluída |
-| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 380626 |
-| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 12 XCTest passaram no run 380626 |
-| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 12 testes de UI passaram no run 380626 |
-| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 380626 |
-| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 380626 |
+| 1 | Fundação | Xcode project, navegação, tema, estrutura, Git e CI base | App compila em simulador e workflow roda | Build iOS e workflow passaram no run 380964 |
+| 2 | Domínio e persistência | Migrações SQLite, partidas, jogadores, contas, livro de lançamentos | Testes de integridade, idempotência e reabertura | 13 XCTest passaram no run 380964 |
+| 3 | Fluxo de partida e banco | Criar partida, painel, saldos, participantes, extrato | Fluxo local completo e persistente | Implementado; 15 testes de UI passaram no run 380964 |
+| 4 | PIX Imobiliário | Transferência, cobrança pendente, confirmação e aluguel | Pagar, receber e rejeitar saldo insuficiente | Fluxos P0 cobertos por XCTest e UI tests no run 380964 |
+| 5 | Imóveis e tabuleiro | Cadastro/compra de imóveis, histórico, cena Blender/USDZ e posição local das peças | Propriedade e visual 3D integrados | `.blend`, USDZ e preview gerados; cena carregada no simulador no run 380964 |
 | 6 | Regras e acabamento | Encerramento, resumo, acessibilidade, erros, privacidade local, apagar dados e estados vazios | MVP P0 funcional e polido | Resumo, disclosure local, exclusão, Reduzir Movimento, ícone e Dynamic Type implementados; auditoria VoiceOver manual pendente |
 | 7 | Testes funcionais | XCTest, testes de interface, persistência e concorrência local | Fluxos principais cobertos automaticamente | 11 unit tests + 8 UI tests passaram no run 379686 |
-| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Quinze prints revistos; run 380626 verde; acesso demo e recibo PIX capturados; `.app` publicado |
-| 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | Build e 12+12 testes verdes; resta auditoria VoiceOver em aparelho e decidir assinatura/TestFlight |
+| 8 | Rodadas visuais | Capturas no simulador, análise de telas, correções de layout | Artefatos revisados e regressões corrigidas | Dezessete prints revistos; run 380964 verde; próximo jogador, cobranças e setup ampliado capturados; `.app` publicado |
+| 9 | Estabilização | QA final, documentação, CI verde, app de simulador e pacote para teste | Build candidato a teste | Build e 13+15 testes verdes; resta auditoria VoiceOver em aparelho e decidir assinatura/TestFlight |
 
 > As semanas são marcos de execução, não uma promessa de calendário. Cada rodada deve atualizar o estado, descobertas, resultados dos testes, observações dos prints e próximo passo recomendado.
 
@@ -100,25 +100,27 @@ Run [38090136614](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 - [x] Reabrir comprovantes pelo extrato usando o lançamento persistido, referência e horário originais; explicitar que saldos atuais podem ter mudado.
 - [x] CI verde; sucesso, erro de saldo, retorno para edição, recibo e proteção contra confirmação repetida validados por XCTest/UI tests.
 
-### Rodada 23 · Central da mesa
+### Rodada 23 · Central da mesa — concluída
 - [x] Explicitar a conta ativa e oferecer “Próximo jogador” com seleção persistida.
 - [x] Mostrar/ocultar o saldo principal com rótulos acessíveis.
 - [x] Cobranças pendentes mostram valor, pagador e recebedor antes de pagar.
 - [x] Manter atalhos prioritários, ranking compacto e acesso ao detalhe das movimentações.
 - [x] Cadastro permite reorganizar ordem, identifica quem começa e exibe ícone de Peão visível.
 - [x] Navegação de teclado com Próximo/Concluir e teste com seis jogadores/texto longo em Dynamic Type.
-- [ ] Aceite: confirmar a nova bateria do CI e revisar o painel/cobranças nas capturas.
+- [x] Aceite: troca de turno, ocultar saldo, cobrança e roster ampliado confirmados pelo CI e revisão visual.
 
-Implementação em `HomeView.swift`, `CreateGameView.swift` e `SQLiteGameRepository.swift`; nova rodada do CI e das 17 capturas pendente.
+Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38096466818) passou com 13 unit tests, 15 UI tests e 17 capturas. A revisão visual confirmou controles principais, cobrança pendente com valor e cadastro de seis jogadores em Dynamic Type XXXL.
 
-### Rodada 24 · Entrada e histórico
-- [ ] Entrada com Criar partida, Continuar partida e Explorar demonstração.
+### Rodada 24 · Entrada e histórico — em execução
+- [x] Entrada com Criar partida, acesso demonstrativo opcional e atalho para partidas salvas/continuar.
 - [ ] Demonstração isolada das partidas reais, substituindo a prévia de acesso sem utilidade prática.
-- [ ] Listar partidas ativas/encerradas e retomar uma partida específica.
-- [ ] Resultado final com empates explícitos e saldo, imóveis e patrimônio separados.
-- [ ] Compartilhar resumo com indicação de moeda fictícia.
+- [x] Listar partidas ativas/encerradas e retomar uma partida específica; última seleção fica salva localmente.
+- [x] Resultado final com empates explícitos e saldo, imóveis e patrimônio separados.
+- [x] Compartilhar resumo final com saldo/imóveis separados e indicação de moeda fictícia.
 - [ ] Ranking entre partidas: etapa posterior, dependente de perfis estáveis de jogadores.
 - [ ] Aceite: demonstração não altera dados reais; retomada restaura jogador, saldos e extrato corretos.
+
+`allGames`, seleção local da última partida, `GameHistoryView` e `ShareLink` implementados. Testes de listagem/retomada/compartilhamento e captura da tela de histórico adicionados; validação CI pendente.
 
 ### Rodada 25 · Acabamento e acessibilidade
 - [ ] Reduzir títulos/espaços excessivos; padronizar ações, espaçamentos e áreas de toque.
