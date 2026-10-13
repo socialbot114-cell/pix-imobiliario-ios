@@ -111,16 +111,16 @@ Run [38090136614](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 
 Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38096466818) passou com 13 unit tests, 15 UI tests e 17 capturas. A revisão visual confirmou controles principais, cobrança pendente com valor e cadastro de seis jogadores em Dynamic Type XXXL.
 
-### Rodada 24 · Entrada e histórico — em execução
+### Rodada 24 · Entrada e histórico — concluída
 - [x] Entrada com Criar partida, Continuar/retomar partida e Explorar demonstração.
 - [x] Demonstração de leitura com dados estáticos, separada das partidas salvas e sem alterar o banco local.
 - [x] Listar partidas ativas/encerradas e retomar uma partida específica; última seleção fica salva localmente.
 - [x] Resultado final com empates explícitos e saldo, imóveis e patrimônio separados.
 - [x] Compartilhar resumo final com saldo/imóveis separados e indicação de moeda fictícia.
 - [ ] Ranking entre partidas: etapa posterior, dependente de perfis estáveis de jogadores.
-- [ ] Aceite: demonstração não altera dados reais; retomada restaura jogador, saldos e extrato corretos.
+- [x] Aceite: demonstração é estática e isolada; retomada restaura jogador, saldos e extrato corretos.
 
-`allGames`, seleção local da última partida, `GameHistoryView`, `DemoExperienceView` e resumo via `ShareLink` implementados. Run [38429459280](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38429459280) compilou o app, passou 14 testes unitários e 16/17 UI tests; a falha foi o teste de demonstração procurando um identificador antigo (`create-demo-game` em vez de `create-game-from-demo`). Correção aplicada localmente; falta nova execução do CI para fechar o aceite e revisar as capturas.
+`allGames`, seleção local da última partida, `GameHistoryView`, `DemoExperienceView` e resumo via `ShareLink` implementados. Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou com 14 unit tests, 17 UI tests e 19 capturas; o teste de demonstração confirma ausência de credenciais e o fluxo de criação. As telas `18-game-history.png` e `19-demo-experience.png` foram revisadas. A ação de criar partida fica abaixo da dobra na demo, depois dos cartões de atividade e ranking; avaliar uma ação persistente durante a rodada de acabamento.
 
 ### Rodada 25 · Acabamento e acessibilidade
 - [ ] Reduzir títulos/espaços excessivos; padronizar ações, espaçamentos e áreas de toque.
@@ -128,6 +128,7 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 - [ ] Feedback tátil de sucesso/erro e transições discretas respeitando Reduzir Movimento.
 - [ ] Loading acompanha trabalho real; avaliar sua utilidade no fluxo normal, sem demora artificial.
 - [ ] Revisar onboarding, ranking e comprovante com Dynamic Type, nomes longos e seis jogadores.
+- [ ] Avaliar ação persistente para criar partida após explorar a demonstração.
 - [ ] Auditoria manual de VoiceOver/rotor em aparelho e revisão em diferentes tamanhos de tela.
 - [ ] Aceite: capturas revisadas, fluxos principais acessíveis e regressão funcional verde.
 
@@ -163,7 +164,7 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 | 2026-10-09 | Rodada 19 · onboarding, jogadores e ranking | Criação em duas etapas; nomes distintos; cor/peça por jogador; ranking ao vivo e final com saldo/imóveis separados, empates compartilhados; workflow captura as três novas telas | Run [38004174524](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38004174524) passou: 12 unit tests + 10 UI tests e 12 capturas. Revisão visual apontou que o cartão do ranking empurrava as ações principais para baixo. | Reposicionar a prévia abaixo dos atalhos e reduzir a altura das linhas do painel |
 | 2026-10-09 | Rodada 20 · hierarquia do painel | Prévia compacta do ranking movida para depois dos atalhos, mantendo PIX/Banco/Cobrar visíveis antes da classificação | Run [38006511339](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38006511339) passou: 12 unit tests + 10 UI tests, build e 12 capturas; o painel revisado mostra os atalhos antes do ranking. | Auditoria VoiceOver em iPhone e decisão de assinatura/TestFlight |
 | 2026-10-09 | Rodada 21 · acesso de demonstração e comprovante PIX | Prévia fintech opcional sem credenciais; progresso da operação local e comprovante com saldos, horário e referência; três novas capturas | Run [38062653908](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38062653908) passou: 12 unit tests + 12 UI tests; 15 capturas revisadas e app de simulador publicado. | Auditoria manual de navegação VoiceOver em iPhone e decisão sobre assinatura/TestFlight |
-| 2026-10-13 | Rodada 24 · correção do teste da demonstração | Atualizado o identificador do botão esperado pelo UI test para corresponder à ação “Criar minha partida” da demo | Run [38429459280](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38429459280): build e 14 unit tests passaram; 16/17 UI tests passaram. A única falha foi um identificador desatualizado no teste, não um erro da tela. | Enviar a correção e reexecutar CI; revisar as capturas e encerrar a rodada 24 |
+| 2026-10-13 | Rodada 24 · entrada, histórico e demo | Corrigido o identificador de acessibilidade esperado pelo teste; demo estática, retomada específica, resumo compartilhável e histórico de partidas validados | Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou: Blender, build iOS, 14 unit tests, 17 UI tests e 19 capturas. `18-game-history.png` e `19-demo-experience.png` revisadas; na demo, a ação de criar partida fica abaixo da dobra. | Rodada 24 concluída; levar a avaliação de CTA persistente para a rodada 25 de acabamento |
 
 ### Registro detalhado da rodada 1
 
