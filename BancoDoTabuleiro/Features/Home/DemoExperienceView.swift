@@ -25,15 +25,15 @@ struct DemoExperienceView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 17) {
-                VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
                     Label("DEMONSTRAÇÃO · SOMENTE LEITURA", systemImage: "sparkles")
                         .font(.system(.caption, design: .rounded, weight: .black))
                         .tracking(0.7)
                         .foregroundStyle(Palette.forest)
                         .accessibilityIdentifier("demo-mode-banner")
                     Text("Uma mesa em movimento")
-                        .font(.system(.largeTitle, design: .serif, weight: .bold))
+                        .font(.system(.title, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
                     Text("Explore o painel, as movimentações e o ranking antes de criar sua partida.")
                         .font(.system(.subheadline, design: .rounded))
@@ -50,16 +50,23 @@ struct DemoExperienceView: View {
                     .font(.system(.caption, design: .rounded))
                     .foregroundStyle(Palette.muted)
                     .fixedSize(horizontal: false, vertical: true)
-
-                Button(action: onCreateGame) {
-                    Label("Criar minha partida", systemImage: "sparkles")
-                }
-                .buttonStyle(PrimaryActionStyle())
-                .accessibilityIdentifier("create-game-from-demo")
             }
-            .padding(18)
+            .padding(.horizontal, 18)
+            .padding(.top, 12)
+            .padding(.bottom, 18)
         }
         .background(Palette.canvas.ignoresSafeArea())
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Button(action: onCreateGame) {
+                Label("Criar minha partida", systemImage: "sparkles")
+            }
+            .buttonStyle(PrimaryActionStyle())
+            .accessibilityIdentifier("create-game-from-demo")
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+            .background(Palette.canvas.opacity(0.97))
+        }
         .navigationTitle("Demonstração")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

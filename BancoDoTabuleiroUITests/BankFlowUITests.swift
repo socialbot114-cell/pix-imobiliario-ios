@@ -123,7 +123,12 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Demonstração"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["demo-mode-banner"].exists)
         XCTAssertFalse(app.staticTexts["Noite de Jogo"].exists)
-        app.buttons["create-game-from-demo"].tap()
+        let createGameFromDemo = app.buttons["create-game-from-demo"]
+        XCTAssertTrue(createGameFromDemo.waitForExistence(timeout: 5))
+        XCTAssertTrue(createGameFromDemo.isHittable)
+        app.swipeUp()
+        XCTAssertTrue(createGameFromDemo.isHittable)
+        createGameFromDemo.tap()
         XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
     }
 

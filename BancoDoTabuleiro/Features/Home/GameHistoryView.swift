@@ -6,10 +6,10 @@ struct GameHistoryView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Suas partidas")
-                        .font(.system(.largeTitle, design: .serif, weight: .bold))
+                        .font(.system(.title, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
                     Text("Partidas locais neste iPhone")
                         .font(.system(.subheadline, design: .rounded))
@@ -24,7 +24,7 @@ struct GameHistoryView: View {
                     }
                 }
             }
-            .padding(18)
+            .padding(16)
         }
         .background(Palette.canvas.ignoresSafeArea())
         .navigationTitle("Partidas")
@@ -38,22 +38,30 @@ struct GameHistoryView: View {
     }
 
     private func gameCard(_ game: GameSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 13) {
+        VStack(alignment: .leading, spacing: 11) {
             HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(game.name)
                         .font(.system(.title3, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
-                    Text(game.status == "active" ? "EM ANDAMENTO" : "ENCERRADA")
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(game.status == "active" ? "Em andamento" : "Encerrada")
                         .font(.system(.caption2, design: .rounded, weight: .black))
-                        .tracking(0.8)
+                        .tracking(0.35)
                         .foregroundStyle(game.status == "active" ? Palette.success : Palette.muted)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background((game.status == "active" ? Palette.success : Palette.muted).opacity(0.12), in: Capsule())
                 }
                 Spacer(minLength: 4)
                 if game.id == store.game?.id {
                     Label("Aberta agora", systemImage: "checkmark.circle.fill")
                         .font(.system(.caption2, design: .rounded, weight: .semibold))
                         .foregroundStyle(Palette.forest)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 6)
+                        .background(Palette.forest.opacity(0.08), in: Capsule())
                 }
             }
 
@@ -68,10 +76,32 @@ struct GameHistoryView: View {
             .foregroundStyle(Palette.muted)
 
             if game.status == "active", let current = game.currentPlayer {
-                LabeledContent("Conta ativa", value: current.name)
-                LabeledContent("Saldo", value: MoneyFormat.string(current.balanceMinor))
+                VStack(spacing: 8) {
+                    detailRow("Conta ativa", value: current.name)
+                    detailRow("Saldo", value: MoneyFormat.string(current.balanceMinor), emphasized: true)
+                }
+                .padding(12)
+                .background(Palette.canvas.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else if let leader = game.standings.first {
-                LabeledContent("Maior patrimônio", value: "\(leader.player.name) · \(MoneyFormat.string(leader.netWorthMinor))")
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("MAIOR PATRIMÔNIO")
+                        .font(.system(.caption2, design: .rounded, weight: .black))
+                        .tracking(0.65)
+                        .foregroundStyle(Palette.muted)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(leader.player.name)
+                            .font(.system(.headline, design: .rounded, weight: .semibold))
+                            .foregroundStyle(Palette.ink)
+                        Spacer(minLength: 4)
+                        Text(MoneyFormat.string(leader.netWorthMinor))
+                            .font(.system(.subheadline, design: .rounded, weight: .bold))
+                            .foregroundStyle(Palette.forest)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Palette.canvas.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
 
             Text(lastActivity(for: game))
@@ -100,6 +130,19 @@ struct GameHistoryView: View {
         .padding(16)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 21, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 21, style: .continuous).stroke(Palette.line, lineWidth: 1))
+    }
+
+    private func detailRow(_ title: String, value: String, emphasized: Bool = false) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.system(.caption, design: .rounded, weight: .medium))
+                .foregroundStyle(Palette.muted)
+            Spacer(minLength: 6)
+            Text(value)
+                .font(.system(emphasized ? .subheadline : .callout, design: .rounded, weight: emphasized ? .bold : .semibold))
+                .foregroundStyle(Palette.forest)
+                .multilineTextAlignment(.trailing)
+        }
     }
 
     private func lastActivity(for game: GameSnapshot) -> String {
