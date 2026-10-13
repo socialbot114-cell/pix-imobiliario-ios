@@ -19,7 +19,7 @@ struct GameHistoryView: View {
                 if store.savedGames.isEmpty {
                     EmptySection(title: "Ainda sem partidas", detail: "Quando você criar uma mesa, ela aparecerá aqui para retomar depois.")
                 } else {
-                    ForEach(store.savedGames) { game in
+                    ForEach(store.savedGames, id: \.id) { game in
                         gameCard(game)
                     }
                 }
