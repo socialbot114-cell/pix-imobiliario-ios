@@ -128,7 +128,8 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 - [ ] Feedback tátil de sucesso/erro e transições discretas respeitando Reduzir Movimento.
 - [ ] Loading acompanha trabalho real; avaliar sua utilidade no fluxo normal, sem demora artificial.
 - [ ] Revisar onboarding, ranking e comprovante com Dynamic Type, nomes longos e seis jogadores.
-- [ ] Avaliar ação persistente para criar partida após explorar a demonstração.
+- [x] Ação fixa “Criar minha partida” na demonstração; cabeçalho compactado e botão permanece acessível durante a rolagem.
+- [x] Histórico com status em chips, resumo de saldo/patrimônio em cores da paleta e ações primárias mais evidentes.
 - [ ] Auditoria manual de VoiceOver/rotor em aparelho e revisão em diferentes tamanhos de tela.
 - [ ] Aceite: capturas revisadas, fluxos principais acessíveis e regressão funcional verde.
 
@@ -165,6 +166,7 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 | 2026-10-09 | Rodada 20 · hierarquia do painel | Prévia compacta do ranking movida para depois dos atalhos, mantendo PIX/Banco/Cobrar visíveis antes da classificação | Run [38006511339](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38006511339) passou: 12 unit tests + 10 UI tests, build e 12 capturas; o painel revisado mostra os atalhos antes do ranking. | Auditoria VoiceOver em iPhone e decisão de assinatura/TestFlight |
 | 2026-10-09 | Rodada 21 · acesso de demonstração e comprovante PIX | Prévia fintech opcional sem credenciais; progresso da operação local e comprovante com saldos, horário e referência; três novas capturas | Run [38062653908](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38062653908) passou: 12 unit tests + 12 UI tests; 15 capturas revisadas e app de simulador publicado. | Auditoria manual de navegação VoiceOver em iPhone e decisão sobre assinatura/TestFlight |
 | 2026-10-13 | Rodada 24 · entrada, histórico e demo | Corrigido o identificador de acessibilidade esperado pelo teste; demo estática, retomada específica, resumo compartilhável e histórico de partidas validados | Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou: Blender, build iOS, 14 unit tests, 17 UI tests e 19 capturas. `18-game-history.png` e `19-demo-experience.png` revisadas; na demo, a ação de criar partida fica abaixo da dobra. | Rodada 24 concluída; levar a avaliação de CTA persistente para a rodada 25 de acabamento |
+| 2026-10-13 | Rodada 25 · demo e histórico | CTA fixo e opaco na demonstração, título compacto, resumo do histórico colorido pela paleta e estado da partida em chips; teste UI verifica persistência do CTA ao rolar | Run [38461615680](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38461615680) passou: 14 unit tests, 17 UI tests e 19 capturas. `18-game-history.png` e `19-demo-experience.png` revistas; fluxo do CTA verificado no simulador. | Continuar refinamento de telas e auditoria de acessibilidade manual |
 
 ### Registro detalhado da rodada 1
 
