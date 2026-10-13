@@ -65,7 +65,7 @@ struct DemoExperienceView: View {
             .padding(.horizontal, 18)
             .padding(.top, 10)
             .padding(.bottom, 8)
-            .background(Palette.canvas.opacity(0.97))
+            .background(Palette.canvas)
         }
         .navigationTitle("Demonstração")
         .navigationBarTitleDisplayMode(.inline)
