@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private enum HomeSheet: String, Identifiable {
-    case createGame, transfer, bank, charge, privacy, leaderboard, demoAccess, gameHistory
+    case createGame, transfer, bank, charge, privacy, leaderboard, demoAccess, demoExperience, gameHistory
     var id: String { rawValue }
 }
 
@@ -90,12 +90,17 @@ struct HomeView: View {
                         EmptySection(title: "Ranking", detail: "Crie uma partida para ver a classificação.")
                     }
                 case .demoAccess:
-                    DemoAccessView { sheet = .createGame }
+                    DemoAccessView(
+                        onExploreDemo: { sheet = .demoExperience },
+                        onCreateGame: { sheet = .createGame }
+                    )
+                case .demoExperience:
+                    DemoExperienceView { sheet = .createGame }
                 case .gameHistory:
                     GameHistoryView()
                 }
             }
-            .presentationDetents(selected == .createGame || selected == .transfer || selected == .privacy || selected == .leaderboard || selected == .demoAccess || selected == .gameHistory ? [.large] : [.medium, .large])
+            .presentationDetents(selected == .createGame || selected == .transfer || selected == .privacy || selected == .leaderboard || selected == .demoAccess || selected == .demoExperience || selected == .gameHistory ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Encerrar esta partida?", isPresented: $showFinishConfirmation, titleVisibility: .visible) {
@@ -130,6 +135,8 @@ struct HomeView: View {
                 sheet = .leaderboard
             } else if arguments.contains("-capture-demo-access") {
                 sheet = .demoAccess
+            } else if arguments.contains("-capture-demo-experience") {
+                sheet = .demoExperience
             } else if arguments.contains("-capture-game-history") {
                 sheet = .gameHistory
             }
@@ -672,7 +679,8 @@ private struct PrivacyAndDataView: View {
 
 private struct DemoAccessView: View {
     @Environment(\.dismiss) private var dismiss
-    let onContinue: () -> Void
+    let onExploreDemo: () -> Void
+    let onCreateGame: () -> Void
 
     var body: some View {
         ScrollView {
@@ -740,11 +748,16 @@ private struct DemoAccessView: View {
                 .padding(17)
                 .background(Palette.card, in: RoundedRectangle(cornerRadius: 20))
 
-                Button(action: onContinue) {
-                    Label("Acessar demonstração", systemImage: "arrow.right")
+                Button(action: onExploreDemo) {
+                    Label("Explorar demonstração", systemImage: "arrow.right")
                 }
                 .buttonStyle(PrimaryActionStyle())
                 .accessibilityIdentifier("demo-access-continue")
+                Button("Criar minha partida", action: onCreateGame)
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Palette.forest)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .accessibilityIdentifier("demo-access-create-game")
             }
             .padding(20)
         }

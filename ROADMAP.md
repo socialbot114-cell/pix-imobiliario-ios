@@ -112,15 +112,15 @@ Run [38090136614](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38096466818) passou com 13 unit tests, 15 UI tests e 17 capturas. A revisão visual confirmou controles principais, cobrança pendente com valor e cadastro de seis jogadores em Dynamic Type XXXL.
 
 ### Rodada 24 · Entrada e histórico — em execução
-- [x] Entrada com Criar partida, acesso demonstrativo opcional e atalho para partidas salvas/continuar.
-- [ ] Demonstração isolada das partidas reais, substituindo a prévia de acesso sem utilidade prática.
+- [x] Entrada com Criar partida, Continuar/retomar partida e Explorar demonstração.
+- [x] Demonstração de leitura com dados estáticos, separada das partidas salvas e sem alterar o banco local.
 - [x] Listar partidas ativas/encerradas e retomar uma partida específica; última seleção fica salva localmente.
 - [x] Resultado final com empates explícitos e saldo, imóveis e patrimônio separados.
 - [x] Compartilhar resumo final com saldo/imóveis separados e indicação de moeda fictícia.
 - [ ] Ranking entre partidas: etapa posterior, dependente de perfis estáveis de jogadores.
 - [ ] Aceite: demonstração não altera dados reais; retomada restaura jogador, saldos e extrato corretos.
 
-`allGames`, seleção local da última partida, `GameHistoryView` e `ShareLink` implementados. Testes de listagem/retomada/compartilhamento e captura da tela de histórico adicionados; validação CI pendente.
+`allGames`, seleção local da última partida, `GameHistoryView`, `DemoExperienceView` e resumo via `ShareLink` implementados. Testes de listagem/retomada/demonstração e captura da tela de histórico aguardam o CI.
 
 ### Rodada 25 · Acabamento e acessibilidade
 - [ ] Reduzir títulos/espaços excessivos; padronizar ações, espaçamentos e áreas de toque.

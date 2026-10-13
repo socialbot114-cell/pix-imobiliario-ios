@@ -151,6 +151,8 @@ jobs:
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-ranking
             elif [ "$route" = demo-access ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-demo-access
+            elif [ "$route" = demo-experience ]; then
+              xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-demo-experience
             elif [ "$route" = pending-charge ]; then
               xcrun simctl launch "$UDID" com.bancodotabuleiro.pix -ui-testing -screenshot-mode -visual-review-data -capture-pending-charge
             elif [ "$route" = game-history ]; then
@@ -181,6 +183,7 @@ jobs:
           capture 16-transfer-review transfer-review
           capture 17-pending-charge pending-charge
           capture 18-game-history game-history
+          capture 19-demo-experience demo-experience
 
       - name: Build visual contact sheet
         if: always() && steps.build.outcome == 'success'

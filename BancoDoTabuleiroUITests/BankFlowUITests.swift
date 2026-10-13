@@ -117,10 +117,13 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["demo-access-title"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["demo-no-credentials"].exists)
         XCTAssertEqual(app.textFields.count, 0)
+        XCTAssertTrue(app.buttons["demo-access-create-game"].exists)
 
-        let continueDemo = app.buttons["demo-access-continue"]
-        if !continueDemo.isHittable { app.swipeUp() }
-        continueDemo.tap()
+        app.buttons["demo-access-continue"].tap()
+        XCTAssertTrue(app.navigationBars["Demonstração"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["demo-mode-banner"].exists)
+        XCTAssertFalse(app.staticTexts["Noite de Jogo"].exists)
+        app.buttons["create-demo-game"].tap()
         XCTAssertTrue(app.buttons["continue-to-players"].waitForExistence(timeout: 5))
     }
 
@@ -160,6 +163,9 @@ final class BankFlowUITests: XCTestCase {
         if !originalGame.isHittable { app.swipeUp() }
         originalGame.tap()
         XCTAssertTrue(app.descendants(matching: .any)["active-player-context"].label.contains("Bruno"))
+        XCTAssertTrue(app.staticTexts["balance-value"].label.contains("M$ 2.450,00"))
+        app.tabBars.buttons["Extrato"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 5))
     }
 
     func testFinishedGameHistoryOffersShareableSummary() throws {

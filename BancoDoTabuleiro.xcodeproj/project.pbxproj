@@ -23,6 +23,7 @@
 		A1000000000000000000000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* Assets.xcassets */; };
 		A10000000000000000000010 /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* LeaderboardView.swift */; };
 		A10000000000000000000014 /* GameHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* GameHistoryView.swift */; };
+		A10000000000000000000016 /* DemoExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* DemoExperienceView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		A20000000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000000000000000000013 /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/LeaderboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* GameHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/GameHistoryView.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* DemoExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/DemoExperienceView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 				A20000000000000000000006 /* CreateGameView.swift */,
 				A20000000000000000000013 /* LeaderboardView.swift */,
 				A20000000000000000000014 /* GameHistoryView.swift */,
+				A20000000000000000000016 /* DemoExperienceView.swift */,
 				A20000000000000000000007 /* PaymentViews.swift */,
 				A20000000000000000000008 /* PropertyView.swift */,
 				A20000000000000000000009 /* StatementView.swift */,
@@ -192,6 +195,7 @@
 			A10000000000000000000006 /* CreateGameView.swift in Sources */,
 			A10000000000000000000010 /* LeaderboardView.swift in Sources */,
 			A10000000000000000000014 /* GameHistoryView.swift in Sources */,
+			A10000000000000000000016 /* DemoExperienceView.swift in Sources */,
 			A10000000000000000000007 /* PaymentViews.swift in Sources */,
 			A10000000000000000000008 /* PropertyView.swift in Sources */,
 			A10000000000000000000009 /* StatementView.swift in Sources */,
