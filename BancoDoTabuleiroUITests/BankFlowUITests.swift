@@ -401,7 +401,7 @@ final class BankFlowUITests: XCTestCase {
             Thread.sleep(forTimeInterval: 1.5)
             // Coleta todos os problemas da tela: a falha padrão do XCTest encerra o teste no primeiro achado.
             try app.performAccessibilityAudit { issue in
-                let element = issue.element.map { "id=\($0.identifier) label=\($0.label)" } ?? "sem elemento"
+                let element = issue.element.map { "id=\($0.identifier) tipo=\($0.elementType.rawValue) label=\($0.label)" } ?? "sem elemento"
                 failures.append("[\(route.name)] \(issue.compactDescription) (\(element)): \(issue.detailedDescription)")
                 return true
             }

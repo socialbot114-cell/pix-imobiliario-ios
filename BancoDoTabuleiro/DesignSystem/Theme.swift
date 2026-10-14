@@ -10,7 +10,7 @@ enum Palette {
     static let goldLight = Color(hex: 0xF0D58F)
     static let goldText = Color(hex: 0x7A5610)
     static let burgundy = Color(hex: 0x873C48)
-    static let muted = Color(hex: 0x5A6660)
+    static let muted = Color(hex: 0x46504B)
     static let line = Color(hex: 0xE5DDC7)
     static let success = Color(hex: 0x18764D)
     static let danger = Color(hex: 0xB83E38)
