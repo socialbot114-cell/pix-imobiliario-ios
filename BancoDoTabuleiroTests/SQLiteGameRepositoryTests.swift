@@ -170,6 +170,21 @@ final class SQLiteGameRepositoryTests: XCTestCase {
         XCTAssertTrue(afterRent.transactions.contains(where: { $0.kind == "rent" && $0.description.contains(property.name) }))
     }
 
+    func testDistinctIdempotencyKeysRegisterEachRentPayment() throws {
+        let buyer = try XCTUnwrap(game.players[0])
+        let payer = try XCTUnwrap(game.players[1])
+        let property = try XCTUnwrap(game.properties.first)
+        _ = try repository.buyProperty(gameID: game.id, playerID: buyer.id, propertyID: property.id, idempotencyKey: "buy-once")
+
+        let firstRent = try repository.payRent(gameID: game.id, payerPlayerID: payer.id, propertyID: property.id, idempotencyKey: "rent-março")
+        let secondRent = try repository.payRent(gameID: game.id, payerPlayerID: payer.id, propertyID: property.id, idempotencyKey: "rent-abril")
+        let result = try repository.snapshot(gameID: game.id)
+
+        XCTAssertNotEqual(firstRent, secondRent)
+        XCTAssertEqual(result.transactions.filter { $0.kind == "rent" }.count, 2)
+        XCTAssertEqual(result.players.last?.balanceMinor, 1_000_00 - 2 * property.rentMinor)
+    }
+
     func testChargeChangesBalanceOnlyWhenPaidAndCannotBePaidTwice() throws {
         let creator = try XCTUnwrap(game.players[0])
         let payer = try XCTUnwrap(game.players[1])

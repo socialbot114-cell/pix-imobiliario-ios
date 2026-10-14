@@ -25,6 +25,8 @@ struct TransferView: View {
     @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "150" : ""
     @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Aluguel da Rua Verde" : ""
     @State private var isProcessing = ProcessInfo.processInfo.arguments.contains("-capture-transfer-processing")
+    // Uma chave por formulário: repetir o envio após erro não duplica a operação.
+    @State private var idempotencyKey = UUID().uuidString
     @State private var receipt: TransferReceiptDetails?
     @State private var isReviewing = false
     @State private var validationError: String?
@@ -356,7 +358,7 @@ struct TransferView: View {
         isProcessing = true
         Task { @MainActor in
             await Task.yield()
-            store.transfer(from: fromPlayerID, to: toPlayerID, amount: amountMinor, description: memo)
+            store.transfer(from: fromPlayerID, to: toPlayerID, amount: amountMinor, description: memo, idempotencyKey: idempotencyKey)
             guard store.errorMessage == nil,
                   let updatedGame = store.game,
                   let updatedPayer = updatedGame.players.first(where: { $0.id == fromPlayerID }),
@@ -455,6 +457,7 @@ struct BankOperationView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
     @State private var kind: BankMovementKind = .receive
+    @State private var idempotencyKey = UUID().uuidString
     @State private var amount = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "200" : ""
     @State private var description = ProcessInfo.processInfo.arguments.contains("-screenshot-mode") ? "Renda pela casa inicial" : ""
 
@@ -506,7 +509,8 @@ struct BankOperationView: View {
         store.bankMovement(
             amount: amountMinor,
             kind: kind,
-            description: reason.isEmpty ? kind.label : reason
+            description: reason.isEmpty ? kind.label : reason,
+            idempotencyKey: idempotencyKey
         )
         if store.errorMessage == nil { dismiss() }
     }

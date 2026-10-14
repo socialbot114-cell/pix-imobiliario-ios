@@ -140,12 +140,12 @@ final class SQLiteGameRepository {
     }
 
     @discardableResult
-    func transfer(gameID: Int64, fromPlayerID: Int64, toPlayerID: Int64, amountMinor: Int64, description: String, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
+    func transfer(gameID: Int64, fromPlayerID: Int64, toPlayerID: Int64, amountMinor: Int64, description: String, idempotencyKey: String) throws -> Int64 {
         try performTransfer(gameID: gameID, fromPlayerID: fromPlayerID, toPlayerID: toPlayerID, amountMinor: amountMinor, kind: "transfer", description: description, propertyID: nil, idempotencyKey: idempotencyKey)
     }
 
     @discardableResult
-    func bankMovement(gameID: Int64, playerID: Int64, amountMinor: Int64, kind: BankMovementKind, description: String, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
+    func bankMovement(gameID: Int64, playerID: Int64, amountMinor: Int64, kind: BankMovementKind, description: String, idempotencyKey: String) throws -> Int64 {
         guard amountMinor > 0 else { throw GameStoreError.invalidAmount }
         return try transaction {
             guard try queryInt("SELECT id FROM games WHERE id = ? AND status = 'active'", [.integer(gameID)]) != nil else { throw GameStoreError.noActiveGame }
@@ -165,7 +165,7 @@ final class SQLiteGameRepository {
     }
 
     @discardableResult
-    func buyProperty(gameID: Int64, playerID: Int64, propertyID: Int64, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
+    func buyProperty(gameID: Int64, playerID: Int64, propertyID: Int64, idempotencyKey: String) throws -> Int64 {
         try transaction {
             guard try queryInt("SELECT id FROM games WHERE id = ? AND status = 'active'", [.integer(gameID)]) != nil else { throw GameStoreError.noActiveGame }
             if let existing = try transactionID(idempotencyKey: idempotencyKey) { return existing }
@@ -188,7 +188,7 @@ final class SQLiteGameRepository {
     }
 
     @discardableResult
-    func payRent(gameID: Int64, payerPlayerID: Int64, propertyID: Int64, idempotencyKey: String = UUID().uuidString) throws -> Int64 {
+    func payRent(gameID: Int64, payerPlayerID: Int64, propertyID: Int64, idempotencyKey: String) throws -> Int64 {
         try transaction {
             guard let details = try queryOne("SELECT p.owner_player_id, p.rent_minor, p.name FROM properties p WHERE p.id = ? AND p.game_id = ?", [.integer(propertyID), .integer(gameID)], map: { row in
                 (sqlite3_column_type(row, 0) == SQLITE_NULL ? nil : sqlite3_column_int64(row, 0), sqlite3_column_int64(row, 1), text(row, 2))
@@ -646,24 +646,24 @@ final class GameStore: ObservableObject {
         }
     }
 
-    func transfer(from: Int64, to: Int64, amount: Int64, description: String) {
+    func transfer(from: Int64, to: Int64, amount: Int64, description: String, idempotencyKey: String) {
         guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
-        do { try repository.transfer(gameID: game.id, fromPlayerID: from, toPlayerID: to, amountMinor: amount, description: description); refresh() }
+        do { try repository.transfer(gameID: game.id, fromPlayerID: from, toPlayerID: to, amountMinor: amount, description: description, idempotencyKey: idempotencyKey); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 
-    func bankMovement(amount: Int64, kind: BankMovementKind, description: String) {
+    func bankMovement(amount: Int64, kind: BankMovementKind, description: String, idempotencyKey: String) {
         guard let game, let playerID = game.currentPlayer?.id, let repository else {
             errorMessage = GameStoreError.noActiveGame.localizedDescription
             return
         }
-        do { try repository.bankMovement(gameID: game.id, playerID: playerID, amountMinor: amount, kind: kind, description: description); refresh() }
+        do { try repository.bankMovement(gameID: game.id, playerID: playerID, amountMinor: amount, kind: kind, description: description, idempotencyKey: idempotencyKey); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 
-    func buy(property: GameProperty, playerID: Int64) {
+    func buy(property: GameProperty, playerID: Int64, idempotencyKey: String) {
         guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
-        do { try repository.buyProperty(gameID: game.id, playerID: playerID, propertyID: property.id); refresh() }
+        do { try repository.buyProperty(gameID: game.id, playerID: playerID, propertyID: property.id, idempotencyKey: idempotencyKey); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 
@@ -697,9 +697,9 @@ final class GameStore: ObservableObject {
         catch { errorMessage = error.localizedDescription }
     }
 
-    func payRent(property: GameProperty, payerID: Int64) {
+    func payRent(property: GameProperty, payerID: Int64, idempotencyKey: String) {
         guard let game, let repository else { errorMessage = GameStoreError.noActiveGame.localizedDescription; return }
-        do { try repository.payRent(gameID: game.id, payerPlayerID: payerID, propertyID: property.id); refresh() }
+        do { try repository.payRent(gameID: game.id, payerPlayerID: payerID, propertyID: property.id, idempotencyKey: idempotencyKey); refresh() }
         catch { errorMessage = error.localizedDescription }
     }
 

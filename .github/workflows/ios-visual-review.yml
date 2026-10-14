@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Blender 5.2 for USDZ export
         run: |
@@ -45,7 +45,7 @@ jobs:
           test -s Blender/PIX-Board-preview.png
 
       - name: Upload Blender source and preview
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PIX-blender-assets
           path: |
@@ -62,11 +62,11 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download Blender export when available
         if: needs.blender-assets.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: PIX-blender-assets
           path: .
@@ -191,7 +191,7 @@ jobs:
 
       - name: Upload unsigned simulator app
         if: always() && steps.build.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PIX-app-ios-simulator
           path: DerivedData/Build/Products/Debug-iphonesimulator/BancoDoTabuleiro.app
@@ -201,7 +201,7 @@ jobs:
       - name: Upload screenshots and contact sheet
         if: always()
         id: upload-prints
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PIX-prints-iphone
           path: |
@@ -213,7 +213,7 @@ jobs:
 
       - name: Upload build/test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PIX-build-test-results
           path: |
