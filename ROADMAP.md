@@ -120,18 +120,19 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 - [ ] Ranking entre partidas: etapa posterior, dependente de perfis estáveis de jogadores.
 - [x] Aceite: demonstração é estática e isolada; retomada restaura jogador, saldos e extrato corretos.
 
-`allGames`, seleção local da última partida, `GameHistoryView`, `DemoExperienceView` e resumo via `ShareLink` implementados. Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou com 14 unit tests, 17 UI tests e 19 capturas; o teste de demonstração confirma ausência de credenciais e o fluxo de criação. As telas `18-game-history.png` e `19-demo-experience.png` foram revisadas. A ação de criar partida fica abaixo da dobra na demo, depois dos cartões de atividade e ranking; avaliar uma ação persistente durante a rodada de acabamento.
+`allGames`, seleção local da última partida, `GameHistoryView`, `DemoExperienceView` e resumo via `ShareLink` implementados. Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou com 14 unit tests, 17 UI tests e 19 capturas; o teste de demonstração confirma ausência de credenciais e o fluxo de criação. As telas `18-game-history.png` e `19-demo-experience.png` foram revisadas. A revisão encontrou que o CTA da demo ficava abaixo da dobra; ele foi fixado no rodapé na rodada 25.
 
-### Rodada 25 · Acabamento e acessibilidade
-- [ ] Reduzir títulos/espaços excessivos; padronizar ações, espaçamentos e áreas de toque.
-- [ ] Resolver título truncado de movimentação do banco.
+### Rodada 25 · Acabamento e acessibilidade — em execução
+- [x] Compactar títulos, cartões e espaços no histórico e na demonstração.
+- [x] Priorizar partidas em andamento, com as mais recentes primeiro; usar datas relativas naturais no histórico.
+- [x] Evitar truncamento do título da operação do banco com o título curto “Banco”.
 - [ ] Feedback tátil de sucesso/erro e transições discretas respeitando Reduzir Movimento.
 - [ ] Loading acompanha trabalho real; avaliar sua utilidade no fluxo normal, sem demora artificial.
 - [ ] Revisar onboarding, ranking e comprovante com Dynamic Type, nomes longos e seis jogadores.
 - [x] Ação fixa “Criar minha partida” na demonstração; cabeçalho compactado e botão permanece acessível durante a rolagem.
 - [x] Histórico com status em chips, resumo de saldo/patrimônio em cores da paleta e ações primárias mais evidentes.
 - [ ] Auditoria manual de VoiceOver/rotor em aparelho e revisão em diferentes tamanhos de tela.
-- [ ] Aceite: capturas revisadas, fluxos principais acessíveis e regressão funcional verde.
+- [x] Aceite desta etapa: capturas revisadas e regressão funcional verde; auditoria VoiceOver manual segue pendente.
 
 ## Pós-MVP
 
@@ -167,6 +168,7 @@ Run [38096466818](https://github.com/socialbot114-cell/pix-imobiliario-ios/actio
 | 2026-10-09 | Rodada 21 · acesso de demonstração e comprovante PIX | Prévia fintech opcional sem credenciais; progresso da operação local e comprovante com saldos, horário e referência; três novas capturas | Run [38062653908](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38062653908) passou: 12 unit tests + 12 UI tests; 15 capturas revisadas e app de simulador publicado. | Auditoria manual de navegação VoiceOver em iPhone e decisão sobre assinatura/TestFlight |
 | 2026-10-13 | Rodada 24 · entrada, histórico e demo | Corrigido o identificador de acessibilidade esperado pelo teste; demo estática, retomada específica, resumo compartilhável e histórico de partidas validados | Run [38433545305](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38433545305) passou: Blender, build iOS, 14 unit tests, 17 UI tests e 19 capturas. `18-game-history.png` e `19-demo-experience.png` revisadas; na demo, a ação de criar partida fica abaixo da dobra. | Rodada 24 concluída; levar a avaliação de CTA persistente para a rodada 25 de acabamento |
 | 2026-10-13 | Rodada 25 · demo e histórico | CTA fixo e opaco na demonstração, título compacto, resumo do histórico colorido pela paleta e estado da partida em chips; teste UI verifica persistência do CTA ao rolar | Run [38461615680](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38461615680) passou: 14 unit tests, 17 UI tests e 19 capturas. `18-game-history.png` e `19-demo-experience.png` revistas; fluxo do CTA verificado no simulador. | Continuar refinamento de telas e auditoria de acessibilidade manual |
+| 2026-10-14 | Rodada 25 · hierarquia, datas e histórico | Partidas abertas primeiro; cartões compactos; atividade com Hoje/Ontem e horário; demo com título/descrição curtos e ranking rotulado como exemplo; título do banco reduzido | Run [38499879266](https://github.com/socialbot114-cell/pix-imobiliario-ios/actions/runs/38499879266) passou: 14 unit tests, 18 UI tests e 19 capturas. Novo teste confirma a prioridade das partidas abertas; `18-game-history.png`, `19-demo-experience.png` e `03-bank.png` revistas. | Seguir com feedback tátil, estados de carregamento e auditoria manual VoiceOver/Dynamic Type |
 
 ### Registro detalhado da rodada 1
 
