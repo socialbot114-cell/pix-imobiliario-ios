@@ -77,7 +77,7 @@ struct PropertyView: View {
     private func summaryValue(_ value: String, label: String) -> some View {
         VStack(spacing: 3) {
             Text(value).font(.system(.title3, design: .rounded, weight: .bold)).foregroundStyle(Palette.forest)
-            Text(label).font(.system(size: 8, weight: .heavy, design: .rounded)).tracking(0.8).foregroundStyle(Palette.muted)
+            Text(label).font(.system(.caption2, design: .rounded, weight: .heavy)).tracking(0.8).foregroundStyle(Palette.muted)
         }
         .frame(maxWidth: .infinity)
     }
@@ -144,7 +144,7 @@ struct PropertyView: View {
 
     private func priceColumn(_ title: String, value: Int64) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.system(size: 8, weight: .heavy, design: .rounded)).tracking(0.8).foregroundStyle(Palette.muted)
+            Text(title).font(.system(.caption2, design: .rounded, weight: .heavy)).tracking(0.8).foregroundStyle(Palette.muted)
             Text(MoneyFormat.string(value)).font(.system(.subheadline, design: .rounded, weight: .bold)).foregroundStyle(Palette.ink)
         }
     }
@@ -241,7 +241,7 @@ struct EmptySection: View {
         VStack(spacing: 14) {
             Image(systemName: "building.2.crop.circle.fill")
                 .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Palette.gold)
+                .foregroundStyle(Palette.goldText)
             Text(title).font(.system(.title2, design: .serif, weight: .bold)).foregroundStyle(Palette.ink)
             Text(detail).font(.system(.subheadline, design: .rounded)).foregroundStyle(Palette.muted).multilineTextAlignment(.center)
         }

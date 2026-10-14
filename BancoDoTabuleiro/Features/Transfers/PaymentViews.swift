@@ -267,7 +267,7 @@ struct TransferView: View {
                                 Text(receipt.fromName).font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(Palette.ink)
                             }
                             Spacer()
-                            Image(systemName: "arrow.right").foregroundStyle(Palette.gold)
+                            Image(systemName: "arrow.right").foregroundStyle(Palette.goldText)
                             Spacer()
                             VStack(alignment: .trailing, spacing: 4) {
                                 Text("RECEBEDOR").font(.system(.caption2, design: .rounded, weight: .black)).foregroundStyle(Palette.muted)

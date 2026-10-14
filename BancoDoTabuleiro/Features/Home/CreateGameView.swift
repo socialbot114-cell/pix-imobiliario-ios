@@ -255,7 +255,7 @@ struct CreateGameView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "building.columns.fill")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Palette.gold)
+                        .foregroundStyle(Palette.goldText)
                         .frame(width: 42, height: 42)
                         .background(Palette.gold.opacity(0.14), in: RoundedRectangle(cornerRadius: 13))
                     VStack(alignment: .leading, spacing: 4) {

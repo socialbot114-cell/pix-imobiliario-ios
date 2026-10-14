@@ -153,7 +153,7 @@ struct HomeView: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text("BANCO DO TABULEIRO")
-                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .font(.system(.caption, design: .rounded, weight: .black))
                     .tracking(1.4)
                     .foregroundStyle(Palette.forest)
                 Text("Seu jogo, bem organizado")
@@ -184,7 +184,7 @@ struct HomeView: View {
                         .padding(.horizontal, 4)
                     VStack(spacing: 7) {
                         Text("A mesa está pronta.")
-                            .font(.system(size: 27, weight: .bold, design: .serif))
+                            .font(.system(.title, design: .serif, weight: .bold))
                             .foregroundStyle(Palette.card)
                             .multilineTextAlignment(.center)
                         Text("Controle saldos, imóveis e pagamentos da partida em um só lugar.")
@@ -250,7 +250,7 @@ struct HomeView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
                     Text(game.status == "active" ? "PARTIDA EM ANDAMENTO" : "PARTIDA ENCERRADA")
-                        .font(.system(size: 9, weight: .black, design: .rounded))
+                        .font(.system(.caption2, design: .rounded, weight: .black))
                         .tracking(1.3)
                         .foregroundStyle(game.status == "active" ? Palette.success : Palette.muted)
                 }
@@ -326,7 +326,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Label("SALDO DO JOGADOR ATIVO", systemImage: "sparkle")
-                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                    .font(.system(.caption2, design: .rounded, weight: .heavy))
                     .tracking(1.1)
                     .foregroundStyle(Palette.goldLight)
                 Spacer()
@@ -334,7 +334,7 @@ struct HomeView: View {
                     isPrimaryBalanceHidden.toggle()
                 } label: {
                     Label(isPrimaryBalanceHidden ? "MOSTRAR" : "OCULTAR", systemImage: isPrimaryBalanceHidden ? "eye" : "eye.slash")
-                        .font(.system(size: 8, weight: .heavy, design: .rounded))
+                        .font(.system(.caption2, design: .rounded, weight: .heavy))
                         .tracking(0.5)
                         .foregroundStyle(Palette.card.opacity(0.78))
                         .frame(minHeight: 44)
@@ -667,7 +667,7 @@ private struct PrivacyAndDataView: View {
         HStack(alignment: .top, spacing: 11) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Palette.gold)
+                .foregroundStyle(Palette.goldText)
                 .frame(width: 24)
             Text(text)
                 .font(.system(.subheadline, design: .rounded))
@@ -869,7 +869,7 @@ private struct BoardIllustration: View {
                             .overlay {
                                 VStack(spacing: 5) {
                                     Image(systemName: "building.columns.fill").font(.system(size: 29, weight: .medium)).foregroundStyle(Palette.forest)
-                                    Text("CIDADE\nDO JOGO").font(.system(size: 8, weight: .black, design: .rounded)).tracking(1).multilineTextAlignment(.center).foregroundStyle(Palette.forest)
+                                    Text("CIDADE\nDO JOGO").font(.system(.caption2, design: .rounded, weight: .black)).tracking(1).multilineTextAlignment(.center).foregroundStyle(Palette.forest)
                                 }
                             }
                         HStack(spacing: 20) {
