@@ -106,7 +106,6 @@ struct DemoExperienceView: View {
                         Text(standing.name)
                             .font(.system(.caption2, design: .rounded, weight: .semibold))
                             .foregroundStyle(Palette.ink)
-                            .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity)
                 }

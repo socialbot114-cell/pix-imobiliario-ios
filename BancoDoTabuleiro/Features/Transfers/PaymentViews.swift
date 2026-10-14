@@ -310,12 +310,10 @@ struct TransferView: View {
             Label(name, systemImage: icon)
                 .font(.system(.caption, design: .rounded, weight: .semibold))
                 .foregroundStyle(Palette.muted)
-                .lineLimit(1)
             Text(MoneyFormat.string(amount))
                 .font(.system(.subheadline, design: .rounded, weight: .bold))
                 .foregroundStyle(Palette.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(13)

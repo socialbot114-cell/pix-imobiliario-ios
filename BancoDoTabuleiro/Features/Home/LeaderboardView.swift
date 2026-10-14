@@ -149,8 +149,7 @@ struct PlayerStandingRow: View {
             Text(MoneyFormat.string(standing.netWorthMinor))
                 .font(.system(.subheadline, design: .rounded, weight: .black))
                 .foregroundStyle(Palette.forest)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -162,8 +161,7 @@ struct PlayerStandingRow: View {
             Text(MoneyFormat.string(value))
                 .font(.system(.caption, design: .rounded, weight: .bold))
                 .foregroundStyle(Palette.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
