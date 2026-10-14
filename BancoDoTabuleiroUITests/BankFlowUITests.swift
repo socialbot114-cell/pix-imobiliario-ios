@@ -366,6 +366,49 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["privacy-virtual-currency"].exists)
     }
 
+    func testAccessibilityAuditFindsNoIssuesOnVisualReviewScreens() throws {
+        // Mesmas rotas das capturas do CI: cada tela que vai para os prints também é auditada.
+        let routes: [(name: String, arguments: [String])] = [
+            ("dashboard", []),
+            ("pix", ["-capture-transfer"]),
+            ("bank", ["-capture-bank"]),
+            ("charge", ["-capture-charge"]),
+            ("board", ["-capture-tab-board"]),
+            ("properties", ["-capture-tab-properties"]),
+            ("statement", ["-capture-tab-statement"]),
+            ("privacy", ["-capture-privacy"]),
+            ("create-game", ["-capture-create-game"]),
+            ("player-setup", ["-capture-create-game", "-capture-player-setup"]),
+            ("ranking", ["-capture-ranking"]),
+            ("demo-access", ["-capture-demo-access"]),
+            ("demo-experience", ["-capture-demo-experience"]),
+            ("game-history", ["-capture-game-history"]),
+            ("pending-charge", ["-capture-pending-charge"]),
+            ("transfer-review", ["-capture-transfer-review"]),
+            ("transfer-processing", ["-capture-transfer-processing"]),
+            ("transfer-receipt", ["-capture-transfer-receipt"]),
+            ("large-text", ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]),
+        ]
+
+        var failures: [String] = []
+        for route in routes {
+            app.terminate()
+            app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-screenshot-mode", "-visual-review-data"] + route.arguments
+            app.launch()
+            XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 8), "A tela \(route.name) não apareceu")
+            // Aguarda o fim das transições de apresentação para não auditar um frame intermediário.
+            Thread.sleep(forTimeInterval: 1.5)
+            do {
+                try app.performAccessibilityAudit()
+            } catch {
+                failures.append("[\(route.name)] \(error.localizedDescription)")
+            }
+        }
+
+        XCTAssertTrue(failures.isEmpty, "Auditoria de acessibilidade com problemas:\n" + failures.joined(separator: "\n"))
+    }
+
     private func createGameWithPlayers(first: String = "Ana", second: String = "Bruno") {
         app.buttons["create-game-button"].tap()
         finishGameSetup(first: first, second: second)
