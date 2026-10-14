@@ -122,6 +122,8 @@ final class BankFlowUITests: XCTestCase {
         app.buttons["demo-access-continue"].tap()
         XCTAssertTrue(app.navigationBars["Demonstração"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["demo-mode-banner"].exists)
+        XCTAssertTrue(app.staticTexts["Conheça sua mesa"].exists)
+        XCTAssertTrue(app.staticTexts["Ranking de exemplo"].exists)
         XCTAssertFalse(app.staticTexts["Noite de Jogo"].exists)
         let createGameFromDemo = app.buttons["create-game-from-demo"]
         XCTAssertTrue(createGameFromDemo.waitForExistence(timeout: 5))
@@ -171,6 +173,20 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["balance-value"].label.contains("M$ 2.450,00"))
         app.tabBars.buttons["Extrato"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["transaction-row-2"].waitForExistence(timeout: 5))
+    }
+
+    func testSavedGameHistoryPrioritizesActiveGames() throws {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-screenshot-mode", "-capture-game-history"]
+        app.launch()
+
+        XCTAssertTrue(app.navigationBars["Partidas"].waitForExistence(timeout: 6))
+        let activeGame = app.buttons["saved-game-1"]
+        let finishedGame = app.buttons["saved-game-2"]
+        XCTAssertTrue(activeGame.waitForExistence(timeout: 4))
+        XCTAssertTrue(finishedGame.waitForExistence(timeout: 4))
+        XCTAssertLessThan(activeGame.frame.minY, finishedGame.frame.minY)
     }
 
     func testFinishedGameHistoryOffersShareableSummary() throws {
@@ -281,7 +297,7 @@ final class BankFlowUITests: XCTestCase {
         createGameWithPlayers()
         XCTAssertTrue(app.staticTexts["Noite de Jogo"].waitForExistence(timeout: 6))
         tapHomeAction("Banco")
-        XCTAssertTrue(app.navigationBars["Movimentação do banco"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.navigationBars["Banco"].waitForExistence(timeout: 4))
         let amountField = app.textFields["bank-operation-amount"]
         amountField.tap()
         amountField.typeText("200")

@@ -4,12 +4,21 @@ struct GameHistoryView: View {
     @EnvironmentObject private var store: GameStore
     @Environment(\.dismiss) private var dismiss
 
+    private var orderedGames: [GameSnapshot] {
+        store.savedGames.sorted { lhs, rhs in
+            let lhsIsActive = lhs.status == "active"
+            let rhsIsActive = rhs.status == "active"
+            if lhsIsActive != rhsIsActive { return lhsIsActive }
+            return lhs.id > rhs.id
+        }
+    }
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Suas partidas")
-                        .font(.system(.title, design: .serif, weight: .bold))
+                        .font(.system(.title2, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
                     Text("Partidas locais neste iPhone")
                         .font(.system(.subheadline, design: .rounded))
@@ -19,12 +28,12 @@ struct GameHistoryView: View {
                 if store.savedGames.isEmpty {
                     EmptySection(title: "Ainda sem partidas", detail: "Quando você criar uma mesa, ela aparecerá aqui para retomar depois.")
                 } else {
-                    ForEach(store.savedGames, id: \.id) { game in
+                    ForEach(orderedGames, id: \.id) { game in
                         gameCard(game)
                     }
                 }
             }
-            .padding(16)
+            .padding(14)
         }
         .background(Palette.canvas.ignoresSafeArea())
         .navigationTitle("Partidas")
@@ -38,11 +47,11 @@ struct GameHistoryView: View {
     }
 
     private func gameCard(_ game: GameSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: 9) {
             HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(game.name)
-                        .font(.system(.title3, design: .serif, weight: .bold))
+                        .font(.system(.headline, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -80,7 +89,7 @@ struct GameHistoryView: View {
                     detailRow("Conta ativa", value: current.name)
                     detailRow("Saldo", value: MoneyFormat.string(current.balanceMinor), emphasized: true)
                 }
-                .padding(12)
+                .padding(10)
                 .background(Palette.canvas.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else if let leader = game.standings.first {
                 VStack(alignment: .leading, spacing: 6) {
@@ -99,7 +108,7 @@ struct GameHistoryView: View {
                             .multilineTextAlignment(.trailing)
                     }
                 }
-                .padding(12)
+                .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Palette.canvas.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
@@ -122,12 +131,12 @@ struct GameHistoryView: View {
                     Label("Compartilhar resultado", systemImage: "square.and.arrow.up")
                         .font(.system(.subheadline, design: .rounded, weight: .semibold))
                         .foregroundStyle(Palette.forest)
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .frame(maxWidth: .infinity, minHeight: 38)
                 }
                 .accessibilityIdentifier("share-game-\(game.id)")
             }
         }
-        .padding(16)
+        .padding(14)
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 21, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 21, style: .continuous).stroke(Palette.line, lineWidth: 1))
     }
@@ -149,6 +158,13 @@ struct GameHistoryView: View {
         guard let timestamp = game.transactions.first?.createdAt,
               let date = ISO8601DateFormatter().date(from: timestamp) else {
             return "Ainda sem movimentações"
+        }
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if Calendar.current.isDateInToday(date) {
+            return "Última atividade · Hoje, \(time)"
+        }
+        if Calendar.current.isDateInYesterday(date) {
+            return "Última atividade · Ontem, \(time)"
         }
         return "Última atividade · \(date.formatted(date: .abbreviated, time: .shortened))"
     }

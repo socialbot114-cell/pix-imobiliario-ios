@@ -25,17 +25,17 @@ struct DemoExperienceView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("DEMONSTRAÇÃO · SOMENTE LEITURA", systemImage: "sparkles")
                         .font(.system(.caption, design: .rounded, weight: .black))
                         .tracking(0.7)
                         .foregroundStyle(Palette.forest)
                         .accessibilityIdentifier("demo-mode-banner")
-                    Text("Uma mesa em movimento")
+                    Text("Conheça sua mesa")
                         .font(.system(.title, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
-                    Text("Explore o painel, as movimentações e o ranking antes de criar sua partida.")
+                    Text("Veja saldos, jogadores e movimentações de uma partida.")
                         .font(.system(.subheadline, design: .rounded))
                         .foregroundStyle(Palette.muted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -118,7 +118,7 @@ struct DemoExperienceView: View {
 
     private var demoRankingCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle(title: "Ranking ao vivo")
+            SectionTitle(title: "Ranking de exemplo")
             ForEach(standings) { standing in
                 HStack(spacing: 9) {
                     Text("\(standing.rank)º")

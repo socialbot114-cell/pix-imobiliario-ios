@@ -483,7 +483,7 @@ struct BankOperationView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Palette.canvas)
-        .navigationTitle("Movimentação do banco")
+        .navigationTitle("Banco")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() }.foregroundStyle(Palette.forest) }
