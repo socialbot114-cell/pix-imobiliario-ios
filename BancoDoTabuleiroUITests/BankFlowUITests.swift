@@ -399,10 +399,10 @@ final class BankFlowUITests: XCTestCase {
             XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 8), "A tela \(route.name) não apareceu")
             // Aguarda o fim das transições de apresentação para não auditar um frame intermediário.
             Thread.sleep(forTimeInterval: 1.5)
-            do {
-                try app.performAccessibilityAudit()
-            } catch {
-                failures.append("[\(route.name)] \(error.localizedDescription)")
+            // Coleta todos os problemas da tela: a falha padrão do XCTest encerra o teste no primeiro achado.
+            try app.performAccessibilityAudit { issue in
+                failures.append("[\(route.name)] \(issue.compactDescription): \(issue.detailedDescription)")
+                return true
             }
         }
 

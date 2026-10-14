@@ -550,6 +550,8 @@ struct HomeView: View {
                 Button("Ver classificação") { sheet = .leaderboard }
                     .font(.system(.caption, design: .rounded, weight: .bold))
                     .foregroundStyle(Palette.forest)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .accessibilityIdentifier("show-leaderboard")
             }
 
