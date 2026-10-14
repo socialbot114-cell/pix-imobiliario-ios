@@ -622,7 +622,7 @@ private struct PrivacyAndDataView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle().fill(Palette.forest.opacity(0.08)).frame(width: 92, height: 92)
-                    Image(systemName: "lock.shield.fill")
+                    Image(systemName: "lock.shield.fill").accessibilityHidden(true)
                         .font(.system(size: 39, weight: .medium))
                         .foregroundStyle(Palette.forest)
                 }
@@ -712,7 +712,7 @@ private struct DemoAccessView: View {
                         HStack(spacing: 12) {
                             ZStack {
                                 Circle().fill(Palette.forest).frame(width: 50, height: 50)
-                                Image(systemName: "person.fill")
+                                Image(systemName: "person.fill").accessibilityHidden(true)
                                     .font(.system(size: 22, weight: .semibold))
                                     .foregroundStyle(Palette.goldLight)
                             }
@@ -821,7 +821,7 @@ struct TransactionRow: View {
                 Text(transaction.description)
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
-                    .lineLimit(compact ? 1 : 2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(compact ? "\(transaction.fromName)  →  \(transaction.toName)" : "\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(Palette.muted)
@@ -830,8 +830,7 @@ struct TransactionRow: View {
             Text(amountLabel)
                 .font(.system(compact ? .caption2 : .caption, design: .rounded, weight: .bold))
                 .foregroundStyle(amountColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 3)
         .accessibilityElement(children: .combine)
@@ -891,6 +890,7 @@ private struct BoardIllustration: View {
     private func token(_ icon: String, color: Color, angle: Double) -> some View {
         Image(systemName: icon)
             .font(.system(size: 19, weight: .bold))
+            .accessibilityHidden(true)
             .foregroundStyle(.white)
             .frame(width: 34, height: 34)
             .background(LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 10))

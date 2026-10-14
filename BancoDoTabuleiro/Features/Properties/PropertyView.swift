@@ -85,7 +85,7 @@ struct PropertyView: View {
     private func propertyCard(_ property: GameProperty, game: GameSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
-                Image(systemName: property.isAvailable ? "house.fill" : "house.lodge.fill")
+                Image(systemName: property.isAvailable ? "house.fill" : "house.lodge.fill").accessibilityHidden(true)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Palette.forest)
                     .frame(width: 46, height: 46)

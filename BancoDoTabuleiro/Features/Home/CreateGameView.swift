@@ -287,6 +287,8 @@ struct CreateGameView: View {
                 }
                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
                 .foregroundStyle(Palette.forest)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
                 .accessibilityIdentifier("back-to-game-details")
             }
 

@@ -53,7 +53,7 @@ struct BoardView: View {
                         HStack(spacing: 14) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 17).fill(Palette.forest).frame(width: 60, height: 60)
-                                Image(systemName: "die.face.\(lastRoll == 0 ? 5 : ((lastRoll - 1) % 6) + 1).fill")
+                                Image(systemName: "die.face.\(lastRoll == 0 ? 5 : ((lastRoll - 1) % 6) + 1).fill").accessibilityHidden(true)
                                     .font(.system(size: 28, weight: .medium))
                                     .foregroundStyle(Palette.goldLight)
                             }

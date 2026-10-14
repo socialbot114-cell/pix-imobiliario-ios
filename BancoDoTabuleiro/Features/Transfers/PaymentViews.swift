@@ -66,6 +66,7 @@ struct TransferView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(Palette.forest)
                     .disabled(isProcessing)
+                    .accessibilityLabel(isProcessing ? "Processando PIX" : (isReviewing ? "Confirmar" : "Revisar"))
                     .accessibilityIdentifier("confirm-transfer-button")
                 }
             } else {
