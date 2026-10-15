@@ -211,6 +211,22 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Export audit attachments from the test bundle
+        if: always()
+        run: |
+          if [ -d BancoDoTabuleiro.xcresult ]; then
+            xcrun xcresulttool export attachments --path BancoDoTabuleiro.xcresult --output-path audit-attachments || echo 'Não foi possível exportar os anexos.'
+          fi
+
+      - name: Upload audit attachments
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: PIX-audit-attachments
+          path: audit-attachments/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload build/test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -219,8 +235,6 @@ jobs:
           path: |
             xcodebuild-build.log
             xcodebuild-test.log
-            BancoDoTabuleiro.xcresult
-            DerivedData/Logs/Test/**/*.xcresult
           if-no-files-found: warn
           retention-days: 14
 

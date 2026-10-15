@@ -403,6 +403,13 @@ final class BankFlowUITests: XCTestCase {
             try app.performAccessibilityAudit { issue in
                 let element = issue.element.map { "id=\($0.identifier) tipo=\($0.elementType.rawValue) label=\($0.label)" } ?? "sem elemento"
                 failures.append("[\(route.name)] \(issue.compactDescription) (\(element)): \(issue.detailedDescription)")
+                // Anexa o recorte da tela do elemento para ver a cor real atrás do texto.
+                if issue.auditType.contains(.contrast), let target = issue.element, target.exists, target.frame.width > 0 {
+                    let attachment = XCTAttachment(screenshot: target.screenshot())
+                    attachment.name = "contrast-\(route.name)-\(failures.count)"
+                    attachment.lifetime = .keepAlways
+                    self.add(attachment)
+                }
                 return true
             }
         }
