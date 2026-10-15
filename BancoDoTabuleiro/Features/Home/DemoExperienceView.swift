@@ -102,11 +102,10 @@ struct DemoExperienceView: View {
                 ForEach(standings) { standing in
                     VStack(spacing: 5) {
                         Circle().fill(Color(hexString: standing.colorHex)).frame(width: 38, height: 38)
-                            .overlay(Image(systemName: demoToken(for: standing.name)).foregroundStyle(.white))
+                            .overlay(Image(systemName: demoToken(for: standing.name)).accessibilityHidden(true).foregroundStyle(.white))
                         Text(standing.name)
                             .font(.system(.caption2, design: .rounded, weight: .semibold))
                             .foregroundStyle(Palette.ink)
-                            .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity)
                 }

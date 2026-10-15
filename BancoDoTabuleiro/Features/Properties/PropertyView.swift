@@ -77,7 +77,7 @@ struct PropertyView: View {
     private func summaryValue(_ value: String, label: String) -> some View {
         VStack(spacing: 3) {
             Text(value).font(.system(.title3, design: .rounded, weight: .bold)).foregroundStyle(Palette.forest)
-            Text(label).font(.system(size: 8, weight: .heavy, design: .rounded)).tracking(0.8).foregroundStyle(Palette.muted)
+            Text(label).font(.system(.caption2, design: .rounded, weight: .heavy)).tracking(0.8).foregroundStyle(Palette.muted)
         }
         .frame(maxWidth: .infinity)
     }
@@ -85,7 +85,7 @@ struct PropertyView: View {
     private func propertyCard(_ property: GameProperty, game: GameSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
-                Image(systemName: property.isAvailable ? "house.fill" : "house.lodge.fill")
+                Image(systemName: property.isAvailable ? "house.fill" : "house.lodge.fill").accessibilityHidden(true)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Palette.forest)
                     .frame(width: 46, height: 46)
@@ -115,7 +115,8 @@ struct PropertyView: View {
                 Button {
                     guard let buyerID = game.currentPlayer?.id else { return }
                     store.clearError()
-                    store.buy(property: property, playerID: buyerID)
+                    // Chave por toque: o dono único do imóvel já impede uma segunda compra.
+                    store.buy(property: property, playerID: buyerID, idempotencyKey: UUID().uuidString)
                 } label: {
                     Label("Comprar com \(game.currentPlayer?.name ?? "jogador ativo")", systemImage: "cart.fill")
                         .font(.system(.subheadline, design: .rounded, weight: .bold))
@@ -143,7 +144,7 @@ struct PropertyView: View {
 
     private func priceColumn(_ title: String, value: Int64) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.system(size: 8, weight: .heavy, design: .rounded)).tracking(0.8).foregroundStyle(Palette.muted)
+            Text(title).font(.system(.caption2, design: .rounded, weight: .heavy)).tracking(0.8).foregroundStyle(Palette.muted)
             Text(MoneyFormat.string(value)).font(.system(.subheadline, design: .rounded, weight: .bold)).foregroundStyle(Palette.ink)
         }
     }
@@ -195,6 +196,8 @@ private struct RentPaymentView: View {
     @Environment(\.dismiss) private var dismiss
     let property: GameProperty
     @State private var payerID: Int64 = 0
+    // Um aluguel por apresentação do sheet: toque duplo durante o fechamento não cobra duas vezes.
+    @State private var idempotencyKey = UUID().uuidString
 
     private var players: [GamePlayer] { store.game?.players ?? [] }
 
@@ -225,7 +228,7 @@ private struct RentPaymentView: View {
 
     private func pay() {
         store.clearError()
-        store.payRent(property: property, payerID: payerID)
+        store.payRent(property: property, payerID: payerID, idempotencyKey: idempotencyKey)
         if store.errorMessage == nil { dismiss() }
     }
 }
@@ -238,7 +241,7 @@ struct EmptySection: View {
         VStack(spacing: 14) {
             Image(systemName: "building.2.crop.circle.fill")
                 .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Palette.gold)
+                .foregroundStyle(Palette.goldText)
             Text(title).font(.system(.title2, design: .serif, weight: .bold)).foregroundStyle(Palette.ink)
             Text(detail).font(.system(.subheadline, design: .rounded)).foregroundStyle(Palette.muted).multilineTextAlignment(.center)
         }

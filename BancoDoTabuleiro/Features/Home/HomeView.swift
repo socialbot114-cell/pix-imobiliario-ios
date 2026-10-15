@@ -153,14 +153,13 @@ struct HomeView: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text("BANCO DO TABULEIRO")
-                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .font(.system(.caption, design: .rounded, weight: .black))
                     .tracking(1.4)
                     .foregroundStyle(Palette.forest)
                 Text("Seu jogo, bem organizado")
                     .font(.system(.caption, design: .rounded, weight: .medium))
                     .foregroundStyle(Palette.muted)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                    .minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
@@ -184,7 +183,7 @@ struct HomeView: View {
                         .padding(.horizontal, 4)
                     VStack(spacing: 7) {
                         Text("A mesa está pronta.")
-                            .font(.system(size: 27, weight: .bold, design: .serif))
+                            .font(.system(.title, design: .serif, weight: .bold))
                             .foregroundStyle(Palette.card)
                             .multilineTextAlignment(.center)
                         Text("Controle saldos, imóveis e pagamentos da partida em um só lugar.")
@@ -247,10 +246,9 @@ struct HomeView: View {
                     Text(game.name)
                         .font(.system(.title2, design: .serif, weight: .bold))
                         .foregroundStyle(Palette.ink)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(game.status == "active" ? "PARTIDA EM ANDAMENTO" : "PARTIDA ENCERRADA")
-                        .font(.system(size: 9, weight: .black, design: .rounded))
+                        .font(.system(.caption2, design: .rounded, weight: .black))
                         .tracking(1.3)
                         .foregroundStyle(game.status == "active" ? Palette.success : Palette.muted)
                 }
@@ -326,7 +324,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Label("SALDO DO JOGADOR ATIVO", systemImage: "sparkle")
-                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                    .font(.system(.caption2, design: .rounded, weight: .heavy))
                     .tracking(1.1)
                     .foregroundStyle(Palette.goldLight)
                 Spacer()
@@ -334,7 +332,7 @@ struct HomeView: View {
                     isPrimaryBalanceHidden.toggle()
                 } label: {
                     Label(isPrimaryBalanceHidden ? "MOSTRAR" : "OCULTAR", systemImage: isPrimaryBalanceHidden ? "eye" : "eye.slash")
-                        .font(.system(size: 8, weight: .heavy, design: .rounded))
+                        .font(.system(.caption2, design: .rounded, weight: .heavy))
                         .tracking(0.5)
                         .foregroundStyle(Palette.card.opacity(0.78))
                         .frame(minHeight: 44)
@@ -344,8 +342,7 @@ struct HomeView: View {
             }
             Text(isPrimaryBalanceHidden ? "••••••" : MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
                 .font(.system(size: balanceFontSize, weight: .bold, design: .rounded))
-                .minimumScaleFactor(0.7)
-                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(.white)
                 .accessibilityLabel(isPrimaryBalanceHidden ? "Saldo oculto" : MoneyFormat.string(game.currentPlayer?.balanceMinor ?? 0))
                 .accessibilityIdentifier("balance-value")
@@ -364,14 +361,12 @@ struct HomeView: View {
                         .foregroundStyle(Palette.goldLight)
                     Text(game.currentPlayer?.name ?? "Jogador")
                         .foregroundStyle(Palette.card.opacity(0.82))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel("Conta ativa: \(game.currentPlayer?.name ?? "Jogador")")
                     Spacer(minLength: 4)
                     Text("\(game.players.count) jogadores")
                         .foregroundStyle(Palette.card.opacity(0.82))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .font(.system(.caption, design: .rounded, weight: .semibold))
             }
@@ -466,7 +461,7 @@ struct HomeView: View {
                     .font(.system(accessibilitySize ? .body : .caption2, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
                     .lineLimit(accessibilitySize ? 2 : 1)
-                    .minimumScaleFactor(accessibilitySize ? 0.85 : 0.65)
+                    .fixedSize(horizontal: false, vertical: true)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: accessibilitySize ? .infinity : 58)
@@ -550,6 +545,8 @@ struct HomeView: View {
                 Button("Ver classificação") { sheet = .leaderboard }
                     .font(.system(.caption, design: .rounded, weight: .bold))
                     .foregroundStyle(Palette.forest)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .accessibilityIdentifier("show-leaderboard")
             }
 
@@ -582,8 +579,7 @@ struct HomeView: View {
                 Text(title)
                     .font(.system(.caption2, design: .rounded, weight: .bold))
                     .foregroundStyle(Palette.ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
@@ -620,7 +616,7 @@ private struct PrivacyAndDataView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle().fill(Palette.forest.opacity(0.08)).frame(width: 92, height: 92)
-                    Image(systemName: "lock.shield.fill")
+                    Image(systemName: "lock.shield.fill").accessibilityHidden(true)
                         .font(.system(size: 39, weight: .medium))
                         .foregroundStyle(Palette.forest)
                 }
@@ -665,7 +661,7 @@ private struct PrivacyAndDataView: View {
         HStack(alignment: .top, spacing: 11) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Palette.gold)
+                .foregroundStyle(Palette.goldText)
                 .frame(width: 24)
             Text(text)
                 .font(.system(.subheadline, design: .rounded))
@@ -710,7 +706,7 @@ private struct DemoAccessView: View {
                         HStack(spacing: 12) {
                             ZStack {
                                 Circle().fill(Palette.forest).frame(width: 50, height: 50)
-                                Image(systemName: "person.fill")
+                                Image(systemName: "person.fill").accessibilityHidden(true)
                                     .font(.system(size: 22, weight: .semibold))
                                     .foregroundStyle(Palette.goldLight)
                             }
@@ -819,7 +815,7 @@ struct TransactionRow: View {
                 Text(transaction.description)
                     .font(.system(.subheadline, design: .rounded, weight: .semibold))
                     .foregroundStyle(Palette.ink)
-                    .lineLimit(compact ? 1 : 2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(compact ? "\(transaction.fromName)  →  \(transaction.toName)" : "\(transaction.fromName)  →  \(transaction.toName)  ·  \(timestamp)")
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(Palette.muted)
@@ -828,8 +824,7 @@ struct TransactionRow: View {
             Text(amountLabel)
                 .font(.system(compact ? .caption2 : .caption, design: .rounded, weight: .bold))
                 .foregroundStyle(amountColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 3)
         .accessibilityElement(children: .combine)
@@ -867,7 +862,7 @@ private struct BoardIllustration: View {
                             .overlay {
                                 VStack(spacing: 5) {
                                     Image(systemName: "building.columns.fill").font(.system(size: 29, weight: .medium)).foregroundStyle(Palette.forest)
-                                    Text("CIDADE\nDO JOGO").font(.system(size: 8, weight: .black, design: .rounded)).tracking(1).multilineTextAlignment(.center).foregroundStyle(Palette.forest)
+                                    Text("CIDADE\nDO JOGO").font(.system(.caption2, design: .rounded, weight: .black)).tracking(1).multilineTextAlignment(.center).foregroundStyle(Palette.forest)
                                 }
                             }
                         HStack(spacing: 20) {
@@ -889,6 +884,7 @@ private struct BoardIllustration: View {
     private func token(_ icon: String, color: Color, angle: Double) -> some View {
         Image(systemName: icon)
             .font(.system(size: 19, weight: .bold))
+            .accessibilityHidden(true)
             .foregroundStyle(.white)
             .frame(width: 34, height: 34)
             .background(LinearGradient(colors: [color, color.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 10))

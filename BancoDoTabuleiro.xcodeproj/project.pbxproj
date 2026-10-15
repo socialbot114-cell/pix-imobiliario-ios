@@ -21,6 +21,7 @@
 		A1000000000000000000000D /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* libsqlite3.tbd */; };
 		A1000000000000000000000E /* Art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Art.scnassets */; };
 		A1000000000000000000000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* Assets.xcassets */; };
+		A10000000000000000000099 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000099 /* PrivacyInfo.xcprivacy */; };
 		A10000000000000000000010 /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* LeaderboardView.swift */; };
 		A10000000000000000000014 /* GameHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* GameHistoryView.swift */; };
 		A10000000000000000000016 /* DemoExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* DemoExperienceView.swift */; };
@@ -62,6 +63,7 @@
 		A20000000000000000000010 /* BancoDoTabuleiroTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BancoDoTabuleiroTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000011 /* BancoDoTabuleiroUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BancoDoTabuleiroUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000000000000000000099 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A20000000000000000000013 /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/LeaderboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* GameHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/GameHistoryView.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* DemoExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/DemoExperienceView.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				A2000000000000000000000A /* BoardView.swift */,
 				A2000000000000000000000E /* Art.scnassets */,
 				A20000000000000000000012 /* Assets.xcassets */,
+				A20000000000000000000099 /* PrivacyInfo.xcprivacy */,
 			);
 			path = BancoDoTabuleiro;
 			sourceTree = "<group>";
@@ -180,7 +183,7 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A90000000000000000000001 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A1000000000000000000000E /* Art.scnassets in Resources */, A1000000000000000000000F /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		A90000000000000000000001 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A1000000000000000000000E /* Art.scnassets in Resources */, A1000000000000000000000F /* Assets.xcassets in Resources */, A10000000000000000000099 /* PrivacyInfo.xcprivacy in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 		A90000000000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		A90000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */

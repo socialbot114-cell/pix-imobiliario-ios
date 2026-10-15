@@ -366,6 +366,75 @@ final class BankFlowUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["privacy-virtual-currency"].exists)
     }
 
+    func testAccessibilityAuditFindsNoIssuesOnVisualReviewScreens() throws {
+        // Mesmas rotas das capturas do CI: cada tela que vai para os prints também é auditada.
+        let routes: [(name: String, arguments: [String])] = [
+            ("dashboard", []),
+            ("pix", ["-capture-transfer"]),
+            ("bank", ["-capture-bank"]),
+            ("charge", ["-capture-charge"]),
+            ("board", ["-capture-tab-board"]),
+            ("properties", ["-capture-tab-properties"]),
+            ("statement", ["-capture-tab-statement"]),
+            ("privacy", ["-capture-privacy"]),
+            ("create-game", ["-capture-create-game"]),
+            ("player-setup", ["-capture-create-game", "-capture-player-setup"]),
+            ("ranking", ["-capture-ranking"]),
+            ("demo-access", ["-capture-demo-access"]),
+            ("demo-experience", ["-capture-demo-experience"]),
+            ("game-history", ["-capture-game-history"]),
+            ("pending-charge", ["-capture-pending-charge"]),
+            ("transfer-review", ["-capture-transfer-review"]),
+            ("transfer-processing", ["-capture-transfer-processing"]),
+            ("transfer-receipt", ["-capture-transfer-receipt"]),
+            ("large-text", ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]),
+        ]
+
+        var failures: [String] = []
+        var offScreen: [String] = []
+        for route in routes {
+            app.terminate()
+            app = XCUIApplication()
+            app.launchArguments = ["-ui-testing", "-screenshot-mode", "-visual-review-data"] + route.arguments
+            app.launch()
+            XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 8), "A tela \(route.name) não apareceu")
+            // Aguarda o fim das transições de apresentação para não auditar um frame intermediário.
+            Thread.sleep(forTimeInterval: 1.5)
+
+            // Só avaliamos elementos visíveis acima da tab bar. Fora dessa área a amostragem de cor não é confiável;
+            // esses achados vão para o anexo "achados-fora-da-tela" em vez de sumir.
+            let window = app.windows.firstMatch.frame
+            let bottom = app.tabBars.firstMatch.exists ? app.tabBars.firstMatch.frame.minY : window.maxY
+            let visibleArea = CGRect(x: window.minX, y: window.minY, width: window.width, height: bottom - window.minY)
+
+            // Coleta todos os problemas da tela: a falha padrão do XCTest encerra o teste no primeiro achado.
+            try app.performAccessibilityAudit { issue in
+                let element = issue.element.map { "id=\($0.identifier) tipo=\($0.elementType.rawValue) label=\($0.label)" } ?? "sem elemento"
+                let description = "[\(route.name)] \(issue.compactDescription) (\(element)): \(issue.detailedDescription)"
+                if let target = issue.element, !(target.exists && visibleArea.intersects(target.frame)) {
+                    offScreen.append(description)
+                    return true
+                }
+                failures.append(description)
+                // Anexa o recorte da tela do elemento para ver a cor real atrás do texto.
+                if issue.auditType.contains(.contrast), let target = issue.element, target.frame.width > 0 {
+                    let attachment = XCTAttachment(screenshot: target.screenshot())
+                    attachment.name = "contrast-\(route.name)-\(failures.count)"
+                    attachment.lifetime = .keepAlways
+                    self.add(attachment)
+                }
+                return true
+            }
+        }
+
+        let note = XCTAttachment(string: offScreen.joined(separator: "\n"))
+        note.name = "achados-fora-da-tela"
+        note.lifetime = .keepAlways
+        add(note)
+
+        XCTAssertTrue(failures.isEmpty, "Auditoria de acessibilidade com problemas:\n" + failures.joined(separator: "\n"))
+    }
+
     private func createGameWithPlayers(first: String = "Ana", second: String = "Bruno") {
         app.buttons["create-game-button"].tap()
         finishGameSetup(first: first, second: second)
