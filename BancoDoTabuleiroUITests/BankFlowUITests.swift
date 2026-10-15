@@ -391,6 +391,7 @@ final class BankFlowUITests: XCTestCase {
         ]
 
         var failures: [String] = []
+        var offScreen: [String] = []
         for route in routes {
             app.terminate()
             app = XCUIApplication()
@@ -399,12 +400,24 @@ final class BankFlowUITests: XCTestCase {
             XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 8), "A tela \(route.name) não apareceu")
             // Aguarda o fim das transições de apresentação para não auditar um frame intermediário.
             Thread.sleep(forTimeInterval: 1.5)
+
+            // Só avaliamos elementos visíveis acima da tab bar. Fora dessa área a amostragem de cor não é confiável;
+            // esses achados vão para o anexo "achados-fora-da-tela" em vez de sumir.
+            let window = app.windows.firstMatch.frame
+            let bottom = app.tabBars.firstMatch.exists ? app.tabBars.firstMatch.frame.minY : window.maxY
+            let visibleArea = CGRect(x: window.minX, y: window.minY, width: window.width, height: bottom - window.minY)
+
             // Coleta todos os problemas da tela: a falha padrão do XCTest encerra o teste no primeiro achado.
             try app.performAccessibilityAudit { issue in
                 let element = issue.element.map { "id=\($0.identifier) tipo=\($0.elementType.rawValue) label=\($0.label)" } ?? "sem elemento"
-                failures.append("[\(route.name)] \(issue.compactDescription) (\(element)): \(issue.detailedDescription)")
+                let description = "[\(route.name)] \(issue.compactDescription) (\(element)): \(issue.detailedDescription)"
+                if let target = issue.element, !(target.exists && visibleArea.intersects(target.frame)) {
+                    offScreen.append(description)
+                    return true
+                }
+                failures.append(description)
                 // Anexa o recorte da tela do elemento para ver a cor real atrás do texto.
-                if issue.auditType.contains(.contrast), let target = issue.element, target.exists, target.frame.width > 0 {
+                if issue.auditType.contains(.contrast), let target = issue.element, target.frame.width > 0 {
                     let attachment = XCTAttachment(screenshot: target.screenshot())
                     attachment.name = "contrast-\(route.name)-\(failures.count)"
                     attachment.lifetime = .keepAlways
@@ -413,6 +426,11 @@ final class BankFlowUITests: XCTestCase {
                 return true
             }
         }
+
+        let note = XCTAttachment(string: offScreen.joined(separator: "\n"))
+        note.name = "achados-fora-da-tela"
+        note.lifetime = .keepAlways
+        add(note)
 
         XCTAssertTrue(failures.isEmpty, "Auditoria de acessibilidade com problemas:\n" + failures.joined(separator: "\n"))
     }

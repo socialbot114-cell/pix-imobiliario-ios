@@ -216,6 +216,7 @@ jobs:
         run: |
           if [ -d BancoDoTabuleiro.xcresult ]; then
             xcrun xcresulttool export attachments --path BancoDoTabuleiro.xcresult --output-path audit-attachments || echo 'Não foi possível exportar os anexos.'
+            find audit-attachments -name '*.mp4' -delete 2>/dev/null || true
           fi
 
       - name: Upload audit attachments
